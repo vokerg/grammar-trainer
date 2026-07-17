@@ -13,7 +13,13 @@ export function tryValidateAnalysis(content: string): ValidationResult {
     const parsed: unknown = JSON.parse(jsonText);
     const result = GrammarAnalysisSchema.safeParse(parsed);
     if (!result.success) {
-      return { success: false, jsonText, errorSummary: result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('; ') };
+      return {
+        success: false,
+        jsonText,
+        errorSummary: result.error.issues
+          .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
+          .join('; '),
+      };
     }
     return { success: true, analysis: result.data, jsonText };
   } catch (error) {

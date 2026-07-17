@@ -1,6 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import { CreateSubmissionRequestSchema, supportedLanguages, type CreateSubmissionRequest } from '@grammar/shared';
+import {
+  CreateSubmissionRequestSchema,
+  supportedLanguages,
+  type CreateSubmissionRequest,
+} from '@grammar/shared';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
@@ -51,16 +55,23 @@ export function WritePage() {
         <h1>Skriv med dine egne ord</h1>
         <p>Fortæl om noget, du har oplevet, lært eller tænkt på.</p>
       </div>
-      <form className="editor-card" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
+      <form
+        className="editor-card"
+        onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+      >
         <div className="editor-toolbar">
           <label htmlFor="language">Sprog</label>
           <select id="language" {...form.register('language')}>
             {supportedLanguages.map((language) => (
-              <option key={language} value={language}>{languageNames[language]}</option>
+              <option key={language} value={language}>
+                {languageNames[language]}
+              </option>
             ))}
           </select>
         </div>
-        <label className="sr-only" htmlFor="writing-text">Din tekst</label>
+        <label className="sr-only" htmlFor="writing-text">
+          Din tekst
+        </label>
         <textarea
           id="writing-text"
           rows={14}
@@ -69,13 +80,17 @@ export function WritePage() {
           {...form.register('text')}
         />
         <div className="editor-footer">
-          <span>{words} ord · {text.length} tegn</span>
+          <span>
+            {words} ord · {text.length} tegn
+          </span>
           <button className="primary-button" type="submit" disabled={mutation.isPending}>
             Tjek min tekst
           </button>
         </div>
         {form.formState.errors.text?.message === undefined ? null : (
-          <p className="field-error" role="alert">{form.formState.errors.text.message}</p>
+          <p className="field-error" role="alert">
+            {form.formState.errors.text.message}
+          </p>
         )}
       </form>
       {mutation.isPending ? <LoadingState /> : null}

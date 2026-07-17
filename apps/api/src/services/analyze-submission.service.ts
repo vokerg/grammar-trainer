@@ -11,7 +11,10 @@ export class AnalyzeSubmissionService {
     private readonly llmProvider: LanguageModelProvider,
   ) {}
 
-  async execute(input: { submissionId: string; analysisId?: string }): Promise<SubmissionAnalysisResponse> {
+  async execute(input: {
+    submissionId: string;
+    analysisId?: string;
+  }): Promise<SubmissionAnalysisResponse> {
     const submission = await this.context.repositories.submissions.findById(input.submissionId);
     if (submission === null) {
       throw new AppError('SUBMISSION_NOT_FOUND', 'Submission not found.', 404);
@@ -36,7 +39,9 @@ export class AnalyzeSubmissionService {
           styleFeedback: sanitized.styleFeedback,
           provider: this.llmProvider.providerName,
           model: this.llmProvider.modelName,
-          ...(providerResult.rawResponse === undefined ? {} : { rawResponse: providerResult.rawResponse }),
+          ...(providerResult.rawResponse === undefined
+            ? {}
+            : { rawResponse: providerResult.rawResponse }),
         });
         let trainingItemsCreated = 0;
         const mistakes = [];

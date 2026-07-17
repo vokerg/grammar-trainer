@@ -7,7 +7,9 @@ export function AppShell() {
   return (
     <div className="app-shell">
       <header className="site-header">
-        <NavLink className="brand" to="/">Ordværkstedet</NavLink>
+        <NavLink className="brand" to="/">
+          Ordværkstedet
+        </NavLink>
         <nav aria-label="Hovedmenu">
           <NavLink to="/">Skriv</NavLink>
           <NavLink to="/training">Træn</NavLink>

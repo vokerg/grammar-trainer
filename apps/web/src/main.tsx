@@ -5,7 +5,9 @@ import { BrowserRouter } from 'react-router-dom';
 import { App } from './app.js';
 import './styles.css';
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
+});
 
 const root = document.getElementById('root');
 if (root === null) throw new Error('Root element not found.');
@@ -13,7 +15,9 @@ if (root === null) throw new Error('Root element not found.');
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter><App /></BrowserRouter>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>,
 );

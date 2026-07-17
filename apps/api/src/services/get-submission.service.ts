@@ -39,13 +39,16 @@ function mapAnalysis(
         correct: mistake.correct,
         explanation: mistake.explanation,
         category: fromPrismaCategory(mistake.category),
-        ...(mistake.originalSentence === null ? {} : { originalSentence: mistake.originalSentence }),
+        ...(mistake.originalSentence === null
+          ? {}
+          : { originalSentence: mistake.originalSentence }),
         trainable: mistake.trainable,
         distractors: [mistake.distractorOne ?? '', mistake.distractorTwo ?? ''],
         addedToTraining: mistake.trainingItemId !== null,
       })),
     },
-    trainingItemsCreated: analysis.mistakes.filter((mistake) => mistake.trainingItemId !== null).length,
+    trainingItemsCreated: analysis.mistakes.filter((mistake) => mistake.trainingItemId !== null)
+      .length,
   };
 }
 
@@ -54,7 +57,8 @@ export class GetSubmissionService {
 
   async execute(id: string): Promise<SubmissionDetail> {
     const submission = await this.context.repositories.submissions.findDetail(id);
-    if (submission === null) throw new AppError('SUBMISSION_NOT_FOUND', 'Submission not found.', 404);
+    if (submission === null)
+      throw new AppError('SUBMISSION_NOT_FOUND', 'Submission not found.', 404);
     const latest = submission.analyses[0];
     return {
       id: submission.id,
@@ -76,7 +80,8 @@ export class ListSubmissionsService {
     return {
       items: page.map((submission: Submission & { analyses: Analysis[] }) => ({
         id: submission.id,
-        textPreview: submission.text.length > 120 ? `${submission.text.slice(0, 117)}…` : submission.text,
+        textPreview:
+          submission.text.length > 120 ? `${submission.text.slice(0, 117)}…` : submission.text,
         language: submission.language,
         createdAt: submission.createdAt.toISOString(),
         status:

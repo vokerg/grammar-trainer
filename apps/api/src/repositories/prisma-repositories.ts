@@ -88,7 +88,11 @@ class PrismaAnalysisRepository implements AnalysisRepository {
 class PrismaMistakeRepository implements MistakeRepository {
   constructor(private readonly db: DbClient) {}
 
-  create(input: { analysisId: string; language: string; mistake: SanitizedMistake }): Promise<Mistake> {
+  create(input: {
+    analysisId: string;
+    language: string;
+    mistake: SanitizedMistake;
+  }): Promise<Mistake> {
     const { mistake } = input;
     return this.db.mistake.create({
       data: {
@@ -99,7 +103,9 @@ class PrismaMistakeRepository implements MistakeRepository {
         normalizedCorrect: mistake.normalizedCorrect,
         explanation: mistake.explanation,
         category: toPrismaCategory(mistake.category),
-        ...(mistake.originalSentence === undefined ? {} : { originalSentence: mistake.originalSentence }),
+        ...(mistake.originalSentence === undefined
+          ? {}
+          : { originalSentence: mistake.originalSentence }),
         distractorOne: mistake.distractors[0],
         distractorTwo: mistake.distractors[1],
         trainable: mistake.trainable,
@@ -115,7 +121,11 @@ class PrismaMistakeRepository implements MistakeRepository {
 class PrismaTrainingItemRepository implements TrainingItemRepository {
   constructor(private readonly db: DbClient) {}
 
-  async findNextItems(input: { language?: string; limit: number; now: Date }): Promise<TrainingItem[]> {
+  async findNextItems(input: {
+    language?: string;
+    limit: number;
+    now: Date;
+  }): Promise<TrainingItem[]> {
     const items = await this.db.trainingItem.findMany({
       where: {
         active: true,
@@ -140,7 +150,10 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
     return this.db.trainingItem.findUnique({ where: { id } });
   }
 
-  async createOrMergeFromMistake(input: { language: string; mistake: SanitizedMistake }): Promise<{ item: TrainingItem; created: boolean }> {
+  async createOrMergeFromMistake(input: {
+    language: string;
+    mistake: SanitizedMistake;
+  }): Promise<{ item: TrainingItem; created: boolean }> {
     const key = {
       language_normalizedOriginal_normalizedCorrect: {
         language: input.language,
@@ -171,7 +184,12 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
     return { item, created: true };
   }
 
-  async recordAttempt(input: { trainingItemId: string; selectedOption: string; wasCorrect: boolean; practicedAt: Date }): Promise<TrainingItem> {
+  async recordAttempt(input: {
+    trainingItemId: string;
+    selectedOption: string;
+    wasCorrect: boolean;
+    practicedAt: Date;
+  }): Promise<TrainingItem> {
     const nextPracticeAt = new Date(input.practicedAt);
     nextPracticeAt.setHours(nextPracticeAt.getHours() + (input.wasCorrect ? 24 : 1));
     await this.db.trainingAttempt.create({

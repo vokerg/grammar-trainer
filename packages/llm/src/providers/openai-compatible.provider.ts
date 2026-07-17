@@ -32,7 +32,10 @@ export class OpenAICompatibleLanguageModelProvider implements LanguageModelProvi
     }
 
     if (this.config.maxRetries < 1) {
-      throw new LlmError('LLM_INVALID_RESPONSE', 'The language model returned an invalid response.');
+      throw new LlmError(
+        'LLM_INVALID_RESPONSE',
+        'The language model returned an invalid response.',
+      );
     }
 
     const repairedContent = await this.request([
@@ -41,7 +44,10 @@ export class OpenAICompatibleLanguageModelProvider implements LanguageModelProvi
     ]);
     const repairedValidation = tryValidateAnalysis(repairedContent);
     if (!repairedValidation.success) {
-      throw new LlmError('LLM_INVALID_RESPONSE', 'The language model returned invalid JSON after repair.');
+      throw new LlmError(
+        'LLM_INVALID_RESPONSE',
+        'The language model returned invalid JSON after repair.',
+      );
     }
     return {
       analysis: repairedValidation.analysis,
@@ -55,7 +61,8 @@ export class OpenAICompatibleLanguageModelProvider implements LanguageModelProvi
     const timeout = setTimeout(() => controller.abort(), this.config.timeoutMs);
     try {
       const headers: Record<string, string> = { 'content-type': 'application/json' };
-      if (this.config.apiKey.trim().length > 0) headers.authorization = `Bearer ${this.config.apiKey}`;
+      if (this.config.apiKey.trim().length > 0)
+        headers.authorization = `Bearer ${this.config.apiKey}`;
       const response = await fetch(`${this.config.baseUrl.replace(/\/$/, '')}/chat/completions`, {
         method: 'POST',
         headers,
@@ -68,18 +75,26 @@ export class OpenAICompatibleLanguageModelProvider implements LanguageModelProvi
         }),
       });
       if (!response.ok) {
-        throw new LlmError('LLM_UNAVAILABLE', `Language model request failed with status ${response.status}.`);
+        throw new LlmError(
+          'LLM_UNAVAILABLE',
+          `Language model request failed with status ${response.status}.`,
+        );
       }
       const payload = (await response.json()) as CompletionResponse;
       const content = payload.choices?.[0]?.message?.content;
       if (typeof content !== 'string' || content.trim().length === 0) {
-        throw new LlmError('LLM_INVALID_RESPONSE', 'The language model returned no message content.');
+        throw new LlmError(
+          'LLM_INVALID_RESPONSE',
+          'The language model returned no message content.',
+        );
       }
       return content;
     } catch (error) {
       if (error instanceof LlmError) throw error;
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new LlmError('LLM_TIMEOUT', 'The language model request timed out.', { cause: error });
+        throw new LlmError('LLM_TIMEOUT', 'The language model request timed out.', {
+          cause: error,
+        });
       }
       throw new LlmError(
         'LLM_UNAVAILABLE',

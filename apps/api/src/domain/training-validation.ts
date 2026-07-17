@@ -1,8 +1,4 @@
-import {
-  normalizeTrainingText,
-  type GrammarAnalysis,
-  type GrammarMistake,
-} from '@grammar/shared';
+import { normalizeTrainingText, type GrammarAnalysis, type GrammarMistake } from '@grammar/shared';
 
 export type SanitizedMistake = GrammarMistake & {
   normalizedOriginal: string;
@@ -35,7 +31,10 @@ export function sanitizeMistake(mistake: GrammarMistake, language: string): Sani
   return { ...mistake, trainable, normalizedOriginal, normalizedCorrect };
 }
 
-export function sanitizeAnalysis(analysis: GrammarAnalysis, language: string): GrammarAnalysis & {
+export function sanitizeAnalysis(
+  analysis: GrammarAnalysis,
+  language: string,
+): GrammarAnalysis & {
   mistakes: SanitizedMistake[];
 } {
   return {

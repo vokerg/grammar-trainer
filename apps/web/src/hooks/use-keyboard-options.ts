@@ -1,9 +1,6 @@
 import { useEffect } from 'react';
 
-export function useKeyboardOptions(
-  enabled: boolean,
-  onSelect: (index: number) => void,
-): void {
+export function useKeyboardOptions(enabled: boolean, onSelect: (index: number) => void): void {
   useEffect(() => {
     if (!enabled) return undefined;
     const listener = (event: KeyboardEvent): void => {

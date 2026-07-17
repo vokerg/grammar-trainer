@@ -1,16 +1,16 @@
-import type {
-  Analysis,
-  Mistake,
-  Submission,
-  TrainingItem,
-} from '@prisma/client';
+import type { Analysis, Mistake, Submission, TrainingItem } from '@prisma/client';
 import type { SanitizedMistake } from '../domain/training-validation.js';
 
 export interface SubmissionRepository {
   create(input: { text: string; language: string }): Promise<Submission>;
   findById(id: string): Promise<Submission | null>;
-  findDetail(id: string): Promise<(Submission & { analyses: Array<Analysis & { mistakes: Mistake[] }> }) | null>;
-  list(input: { limit: number; cursor?: string }): Promise<Array<Submission & { analyses: Analysis[] }>>;
+  findDetail(
+    id: string,
+  ): Promise<(Submission & { analyses: Array<Analysis & { mistakes: Mistake[] }> }) | null>;
+  list(input: {
+    limit: number;
+    cursor?: string;
+  }): Promise<Array<Submission & { analyses: Analysis[] }>>;
 }
 
 export interface AnalysisRepository {
@@ -29,15 +29,27 @@ export interface AnalysisRepository {
 }
 
 export interface MistakeRepository {
-  create(input: { analysisId: string; language: string; mistake: SanitizedMistake }): Promise<Mistake>;
+  create(input: {
+    analysisId: string;
+    language: string;
+    mistake: SanitizedMistake;
+  }): Promise<Mistake>;
   attachTrainingItem(mistakeId: string, trainingItemId: string): Promise<void>;
 }
 
 export interface TrainingItemRepository {
   findNextItems(input: { language?: string; limit: number; now: Date }): Promise<TrainingItem[]>;
   findById(id: string): Promise<TrainingItem | null>;
-  createOrMergeFromMistake(input: { language: string; mistake: SanitizedMistake }): Promise<{ item: TrainingItem; created: boolean }>;
-  recordAttempt(input: { trainingItemId: string; selectedOption: string; wasCorrect: boolean; practicedAt: Date }): Promise<TrainingItem>;
+  createOrMergeFromMistake(input: {
+    language: string;
+    mistake: SanitizedMistake;
+  }): Promise<{ item: TrainingItem; created: boolean }>;
+  recordAttempt(input: {
+    trainingItemId: string;
+    selectedOption: string;
+    wasCorrect: boolean;
+    practicedAt: Date;
+  }): Promise<TrainingItem>;
   getStats(language?: string): Promise<{
     activeItems: number;
     totalAttempts: number;

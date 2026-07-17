@@ -13,13 +13,15 @@ describe('LLM response parsing', () => {
   });
 
   it('accepts a valid response', () => {
-    const result = tryValidateAnalysis(JSON.stringify({
-      detectedLanguage: 'da',
-      overallFeedback: 'Godt arbejde.',
-      styleFeedback: [],
-      correctedText: 'Hej.',
-      mistakes: [],
-    }));
+    const result = tryValidateAnalysis(
+      JSON.stringify({
+        detectedLanguage: 'da',
+        overallFeedback: 'Godt arbejde.',
+        styleFeedback: [],
+        correctedText: 'Hej.',
+        mistakes: [],
+      }),
+    );
     expect(result.success).toBe(true);
   });
 });

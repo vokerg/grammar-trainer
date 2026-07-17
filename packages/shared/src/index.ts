@@ -40,7 +40,10 @@ export const CreateSubmissionRequestSchema = z.object({
   text: z
     .string()
     .max(10_000)
-    .refine((value) => value.trim().length >= 3, 'Text must contain at least 3 visible characters.'),
+    .refine(
+      (value) => value.trim().length >= 3,
+      'Text must contain at least 3 visible characters.',
+    ),
   language: SupportedLanguageSchema,
 });
 export type CreateSubmissionRequest = z.infer<typeof CreateSubmissionRequestSchema>;

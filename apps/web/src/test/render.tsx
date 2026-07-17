@@ -4,7 +4,9 @@ import type { ReactElement } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
 export function renderWithProviders(ui: ReactElement, initialEntries = ['/']): RenderResult {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>

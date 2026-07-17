@@ -1,5 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { normalizeTrainingText, type MistakeCategory, type TrainingSessionResponse } from '@grammar/shared';
+import {
+  normalizeTrainingText,
+  type MistakeCategory,
+  type TrainingSessionResponse,
+} from '@grammar/shared';
 import { fromPrismaCategory } from '../domain/category.js';
 import { AppError } from '../domain/errors.js';
 import { canonicalOptions, shuffleOptions } from '../domain/training-validation.js';

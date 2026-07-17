@@ -51,7 +51,9 @@ afterAll(async () => {
   rmSync(databasePath, { force: true });
 });
 
-async function createTestApp(provider: LanguageModelProvider = new MockLanguageModelProvider(env.llm)) {
+async function createTestApp(
+  provider: LanguageModelProvider = new MockLanguageModelProvider(env.llm),
+) {
   return buildApp({ env, prisma, llmProvider: provider });
 }
 

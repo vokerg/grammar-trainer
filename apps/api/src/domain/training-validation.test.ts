@@ -23,7 +23,9 @@ describe('training validation', () => {
   });
 
   it('does not train punctuation-only mistakes', () => {
-    expect(sanitizeMistake({ ...baseMistake, category: 'punctuation' }, 'da').trainable).toBe(false);
+    expect(sanitizeMistake({ ...baseMistake, category: 'punctuation' }, 'da').trainable).toBe(
+      false,
+    );
   });
 
   it('shuffles without changing the option set', () => {

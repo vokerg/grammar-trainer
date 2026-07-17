@@ -18,6 +18,8 @@ describe('provider factory', () => {
   });
 
   it('creates the OpenAI-compatible provider', () => {
-    expect(createLanguageModelProvider({ ...baseConfig, provider: 'openai-compatible' }).providerName).toBe('openai-compatible');
+    expect(
+      createLanguageModelProvider({ ...baseConfig, provider: 'openai-compatible' }).providerName,
+    ).toBe('openai-compatible');
   });
 });

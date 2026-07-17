@@ -3,7 +3,10 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { AnalyzeSubmissionService } from '../services/analyze-submission.service.js';
 import type { CreateSubmissionService } from '../services/create-submission.service.js';
-import type { GetSubmissionService, ListSubmissionsService } from '../services/get-submission.service.js';
+import type {
+  GetSubmissionService,
+  ListSubmissionsService,
+} from '../services/get-submission.service.js';
 
 const IdParamsSchema = z.object({ submissionId: z.string().min(1) });
 const ListQuerySchema = z.object({

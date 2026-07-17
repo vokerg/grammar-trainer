@@ -8,7 +8,11 @@ import { MistakeCard } from '../components/mistake-card.js';
 export function ResultPage() {
   const { id = '' } = useParams();
   const queryClient = useQueryClient();
-  const query = useQuery({ queryKey: ['submission', id], queryFn: () => getSubmission(id), enabled: id.length > 0 });
+  const query = useQuery({
+    queryKey: ['submission', id],
+    queryFn: () => getSubmission(id),
+    enabled: id.length > 0,
+  });
   const retry = useMutation({
     mutationFn: () => retrySubmission(id),
     onSuccess: async () => queryClient.invalidateQueries({ queryKey: ['submission', id] }),
@@ -16,7 +20,11 @@ export function ResultPage() {
 
   if (query.isPending) return <LoadingState label="Henter din feedback…" />;
   if (query.isError || query.data === undefined) {
-    return <section className="page"><ErrorMessage message="Resultatet kunne ikke hentes." /></section>;
+    return (
+      <section className="page">
+        <ErrorMessage message="Resultatet kunne ikke hentes." />
+      </section>
+    );
   }
 
   const result = query.data.latestAnalysis;
@@ -27,10 +35,16 @@ export function ResultPage() {
         <h1>Din tekst er gemt</h1>
         <ErrorMessage message="Sproganalysen blev ikke færdig, men du har ikke mistet din tekst." />
         <div className="action-row">
-          <button className="primary-button" onClick={() => retry.mutate()} disabled={retry.isPending}>
+          <button
+            className="primary-button"
+            onClick={() => retry.mutate()}
+            disabled={retry.isPending}
+          >
             Prøv analysen igen
           </button>
-          <Link className="secondary-button" to="/">Skriv en ny tekst</Link>
+          <Link className="secondary-button" to="/">
+            Skriv en ny tekst
+          </Link>
         </div>
       </section>
     );
@@ -57,7 +71,11 @@ export function ResultPage() {
       {result.analysis.styleFeedback.length > 0 ? (
         <article className="feedback-card">
           <h2>Stiltips</h2>
-          <ul>{result.analysis.styleFeedback.map((feedback) => <li key={feedback}>{feedback}</li>)}</ul>
+          <ul>
+            {result.analysis.styleFeedback.map((feedback) => (
+              <li key={feedback}>{feedback}</li>
+            ))}
+          </ul>
         </article>
       ) : null}
       <section aria-labelledby="mistakes-heading">
@@ -65,12 +83,20 @@ export function ResultPage() {
         {result.analysis.mistakes.length === 0 ? (
           <p className="empty-state">Vi fandt ingen tydelige fejl i denne tekst.</p>
         ) : (
-          <div className="mistake-grid">{result.analysis.mistakes.map((mistake) => <MistakeCard key={mistake.id} mistake={mistake} />)}</div>
+          <div className="mistake-grid">
+            {result.analysis.mistakes.map((mistake) => (
+              <MistakeCard key={mistake.id} mistake={mistake} />
+            ))}
+          </div>
         )}
       </section>
       <div className="action-row">
-        <Link className="primary-button" to="/training">Start træning</Link>
-        <Link className="secondary-button" to="/">Skriv en ny tekst</Link>
+        <Link className="primary-button" to="/training">
+          Start træning
+        </Link>
+        <Link className="secondary-button" to="/">
+          Skriv en ny tekst
+        </Link>
       </div>
     </section>
   );

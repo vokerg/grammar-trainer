@@ -17,7 +17,11 @@ function analysisFor(input: AnalyzeTextInput, noMistakes: boolean): GrammarAnaly
     detectedLanguage: input.requestedLanguage,
     overallFeedback: cleanFeedback[input.requestedLanguage] ?? cleanFeedback.en ?? 'Good work.',
     styleFeedback: hasKnownMistake
-      ? [input.requestedLanguage === 'da' ? 'Prøv at variere begyndelsen på dine sætninger.' : 'Try varying how your sentences begin.']
+      ? [
+          input.requestedLanguage === 'da'
+            ? 'Prøv at variere begyndelsen på dine sætninger.'
+            : 'Try varying how your sentences begin.',
+        ]
       : [],
     correctedText: hasKnownMistake ? input.text.replace(/interesant/gi, 'interessant') : input.text,
     mistakes: hasKnownMistake
@@ -25,7 +29,10 @@ function analysisFor(input: AnalyzeTextInput, noMistakes: boolean): GrammarAnaly
           {
             original: 'interesant',
             correct: 'interessant',
-            explanation: input.requestedLanguage === 'da' ? 'Ordet staves med dobbelt s.' : 'The word is spelled with a double s.',
+            explanation:
+              input.requestedLanguage === 'da'
+                ? 'Ordet staves med dobbelt s.'
+                : 'The word is spelled with a double s.',
             category: 'spelling',
             originalSentence: input.text,
             trainable: true,
@@ -51,7 +58,10 @@ export class MockLanguageModelProvider implements LanguageModelProvider {
       case 'provider-error':
         throw new LlmError('LLM_UNAVAILABLE', 'The mock language model is unavailable.');
       case 'invalid-json':
-        throw new LlmError('LLM_INVALID_RESPONSE', 'The mock language model returned invalid JSON.');
+        throw new LlmError(
+          'LLM_INVALID_RESPONSE',
+          'The mock language model returned invalid JSON.',
+        );
       case 'no-mistakes':
         return { analysis: analysisFor(input, true), repaired: false };
       case 'success':
