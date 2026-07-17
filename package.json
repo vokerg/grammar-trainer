@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "pnpm build && pnpm --parallel --filter @grammar/api --filter @grammar/web dev",
     "dev:deepseek": "pnpm build && pnpm --parallel --filter @grammar/api --filter @grammar/web dev:deepseek",
-    "build": "pnpm -r build",
+    "build": "pnpm db:generate && pnpm -r build",
     "test": "pnpm build && pnpm -r test",
     "lint": "pnpm build && pnpm -r lint",
     "typecheck": "pnpm build && pnpm -r typecheck",
