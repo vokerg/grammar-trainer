@@ -21,8 +21,9 @@ export function TrainingPage() {
   });
   const current = session.data?.items[index];
   const selectOption = useCallback((optionIndex: number) => {
-    const option = current?.options[optionIndex];
-    if (option === undefined || selected !== null || answer.isPending) return;
+    if (current === undefined || selected !== null || answer.isPending) return;
+    const option = current.options[optionIndex];
+    if (option === undefined) return;
     setSelected(option);
     answer.mutate({ itemId: current.id, option });
   }, [answer, current, selected]);

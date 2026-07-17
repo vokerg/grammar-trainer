@@ -1,5 +1,5 @@
 import type { z } from 'zod';
-import { ApiMistakeSchema } from '@grammar/shared';
+import type { ApiMistakeSchema } from '@grammar/shared';
 
 type ApiMistake = z.infer<typeof ApiMistakeSchema>;
 
