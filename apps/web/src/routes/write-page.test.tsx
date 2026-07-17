@@ -15,6 +15,6 @@ describe('WritePage', () => {
     await user.clear(editor);
     await user.type(editor, 'a');
     await user.click(screen.getByRole('button', { name: 'Tjek min tekst' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('at least 3 visible characters');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Skriv mindst 3 tegn.');
   });
 });
