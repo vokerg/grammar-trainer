@@ -63,8 +63,11 @@ model Mistake {
   explanation        String
   category           MistakeCategory
   originalSentence   String?
+  trainingOriginal   String?
+  trainingCorrect    String?
   distractorOne      String?
   distractorTwo      String?
+  trainingReason     String?
   trainable          Boolean           @default(false)
   createdAt          DateTime          @default(now())
   analysis           Analysis          @relation(fields: [analysisId], references: [id], onDelete: Cascade)
@@ -78,6 +81,7 @@ model TrainingItem {
   id                 String            @id @default(cuid())
   language           String
   category           MistakeCategory
+  exerciseType       String            @default("FORM")
   originalForm       String
   correctForm        String
   normalizedOriginal String
