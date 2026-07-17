@@ -3,6 +3,8 @@ dist/
 coverage/
 .env
 .env.local
+.env.*
+!.env.example
 apps/web/.env.local
 prisma/*.db
 prisma/*.db-journal

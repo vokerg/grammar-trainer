@@ -16,6 +16,16 @@ const EnvSchema = z.object({
     .string()
     .default('false')
     .transform((value) => value === 'true'),
+  LLM_DEBUG_LOGGING: z
+    .string()
+    .default('false')
+    .transform((value) => value === 'true'),
+  LLM_REASONING_EFFORT: z
+    .enum(['none', 'low', 'medium', 'high'])
+    .or(z.literal(''))
+    .optional()
+    .transform((value) => (value === '' ? undefined : value)),
+  LLM_THINKING_MODE: z.enum(['default', 'disabled']).default('default'),
   MOCK_LLM_MODE: z
     .enum(['success', 'no-mistakes', 'invalid-json', 'timeout', 'provider-error'])
     .default('success'),
@@ -36,6 +46,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
       timeoutMs: parsed.LLM_TIMEOUT_MS,
       maxRetries: parsed.LLM_MAX_RETRIES,
       storeRawResponse: parsed.LLM_STORE_RAW_RESPONSE,
+      debugLogging: parsed.LLM_DEBUG_LOGGING,
+      reasoningEffort: parsed.LLM_REASONING_EFFORT,
+      thinkingMode: parsed.LLM_THINKING_MODE,
       mockMode: parsed.MOCK_LLM_MODE,
     }),
   };

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:deepseek": "vite",
     "build": "tsc -b && vite build",
     "test": "vitest run",
     "lint": "eslint src --max-warnings=0",

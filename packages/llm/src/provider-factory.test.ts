@@ -9,6 +9,9 @@ const baseConfig = {
   timeoutMs: 1000,
   maxRetries: 1,
   storeRawResponse: false,
+  debugLogging: false,
+  reasoningEffort: 'none' as const,
+  thinkingMode: 'default' as const,
   mockMode: 'success' as const,
 };
 

@@ -8,6 +8,9 @@ export const LlmConfigSchema = z.object({
   timeoutMs: z.number().int().positive(),
   maxRetries: z.number().int().min(0).max(3),
   storeRawResponse: z.boolean(),
+  debugLogging: z.boolean(),
+  reasoningEffort: z.enum(['none', 'low', 'medium', 'high']).optional(),
+  thinkingMode: z.enum(['default', 'disabled']),
   mockMode: z.enum(['success', 'no-mistakes', 'invalid-json', 'timeout', 'provider-error']),
 });
 export type LlmConfig = z.infer<typeof LlmConfigSchema>;
