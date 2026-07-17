@@ -94,6 +94,7 @@ class PrismaMistakeRepository implements MistakeRepository {
     mistake: SanitizedMistake;
   }): Promise<Mistake> {
     const { mistake } = input;
+    const training = mistake.trainingOptions;
     return this.db.mistake.create({
       data: {
         analysisId: input.analysisId,
@@ -106,8 +107,11 @@ class PrismaMistakeRepository implements MistakeRepository {
         ...(mistake.originalSentence === undefined
           ? {}
           : { originalSentence: mistake.originalSentence }),
-        distractorOne: mistake.distractors[0],
-        distractorTwo: mistake.distractors[1],
+        trainingOriginal: training?.originalOption ?? null,
+        trainingCorrect: training?.correctOption ?? null,
+        distractorOne: training?.distractors[0] ?? mistake.distractors?.[0] ?? null,
+        distractorTwo: training?.distractors[1] ?? mistake.distractors?.[1] ?? null,
+        trainingReason: mistake.trainingReason,
         trainable: mistake.trainable,
       },
     });
@@ -129,6 +133,7 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
     const items = await this.db.trainingItem.findMany({
       where: {
         active: true,
+        category: { not: 'CAPITALIZATION' },
         ...(input.language === undefined ? {} : { language: input.language }),
         OR: [{ nextPracticeAt: null }, { nextPracticeAt: { lte: input.now } }],
       },
@@ -154,6 +159,10 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
     language: string;
     mistake: SanitizedMistake;
   }): Promise<{ item: TrainingItem; created: boolean }> {
+    const training = input.mistake.trainingOptions;
+    if (!input.mistake.trainable || training === undefined) {
+      throw new Error('A training item requires validated contextual options.');
+    }
     const key = {
       language_normalizedOriginal_normalizedCorrect: {
         language: input.language,
@@ -161,24 +170,28 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
         normalizedCorrect: input.mistake.normalizedCorrect,
       },
     };
+    const exerciseData = {
+      category: toPrismaCategory(input.mistake.category),
+      exerciseType: 'CONTEXT',
+      originalForm: training.originalOption,
+      correctForm: training.correctOption,
+      distractorOne: training.distractors[0],
+      distractorTwo: training.distractors[1],
+    };
     const existing = await this.db.trainingItem.findUnique({ where: key });
     if (existing !== null) {
       const item = await this.db.trainingItem.update({
         where: { id: existing.id },
-        data: { active: true },
+        data: { active: true, ...exerciseData },
       });
       return { item, created: false };
     }
     const item = await this.db.trainingItem.create({
       data: {
         language: input.language,
-        category: toPrismaCategory(input.mistake.category),
-        originalForm: input.mistake.original,
-        correctForm: input.mistake.correct,
+        ...exerciseData,
         normalizedOriginal: input.mistake.normalizedOriginal,
         normalizedCorrect: input.mistake.normalizedCorrect,
-        distractorOne: input.mistake.distractors[0],
-        distractorTwo: input.mistake.distractors[1],
       },
     });
     return { item, created: true };
@@ -215,7 +228,9 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
   async getStats(language?: string) {
     const where = language === undefined ? {} : { language };
     const [activeItems, attempts, recentlyPractised] = await Promise.all([
-      this.db.trainingItem.count({ where: { ...where, active: true } }),
+      this.db.trainingItem.count({
+        where: { ...where, active: true, category: { not: 'CAPITALIZATION' } },
+      }),
       this.db.trainingAttempt.findMany({
         where: language === undefined ? {} : { trainingItem: { language } },
         select: { wasCorrect: true },
@@ -223,6 +238,7 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
       this.db.trainingItem.count({
         where: {
           ...where,
+          category: { not: 'CAPITALIZATION' },
           lastPracticedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
         },
       }),
