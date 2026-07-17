@@ -24,7 +24,10 @@ export function registerTrainingRoutes(
 ): void {
   app.get('/api/training/session', async (request) => {
     const query = SessionQuerySchema.parse(request.query);
-    return services.session.execute(query);
+    return services.session.execute({
+      limit: query.limit,
+      ...(query.language === undefined ? {} : { language: query.language }),
+    });
   });
 
   app.post('/api/training/items/:trainingItemId/answer', async (request) => {

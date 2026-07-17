@@ -28,7 +28,10 @@ export function registerSubmissionRoutes(
 
   app.get('/api/submissions', async (request) => {
     const query = ListQuerySchema.parse(request.query);
-    return services.list.execute(query);
+    return services.list.execute({
+      limit: query.limit,
+      ...(query.cursor === undefined ? {} : { cursor: query.cursor }),
+    });
   });
 
   app.get('/api/submissions/:submissionId', async (request) => {

@@ -1,10 +1,10 @@
-import {
+import type {
   Prisma,
   PrismaClient,
-  type Analysis,
-  type Mistake,
-  type Submission,
-  type TrainingItem,
+  Analysis,
+  Mistake,
+  Submission,
+  TrainingItem,
 } from '@prisma/client';
 import { toPrismaCategory } from '../domain/category.js';
 import type { SanitizedMistake } from '../domain/training-validation.js';
