@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          show-progress: false
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
@@ -46,16 +48,47 @@ jobs:
         run: pnpm format
 
       - name: Build all packages
-        run: pnpm -r build
+        id: build
+        continue-on-error: true
+        run: pnpm -r build 2>&1 | tee build.log
 
       - name: Lint
-        run: pnpm -r lint
+        id: lint
+        continue-on-error: true
+        run: pnpm -r lint 2>&1 | tee lint.log
 
       - name: Typecheck
-        run: pnpm -r typecheck
+        id: typecheck
+        continue-on-error: true
+        run: pnpm -r typecheck 2>&1 | tee typecheck.log
 
       - name: Test
-        run: pnpm -r test
+        id: test
+        continue-on-error: true
+        run: pnpm -r test 2>&1 | tee test.log
+
+      - name: Upload validation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grammar-trainer-validation-logs
+          path: '*.log'
+          if-no-files-found: error
+
+      - name: Enforce quality gate
+        if: always()
+        env:
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          LINT_OUTCOME: ${{ steps.lint.outcome }}
+          TYPECHECK_OUTCOME: ${{ steps.typecheck.outcome }}
+          TEST_OUTCOME: ${{ steps.test.outcome }}
+        run: |
+          printf 'build=%s\nlint=%s\ntypecheck=%s\ntest=%s\n' \
+            "$BUILD_OUTCOME" "$LINT_OUTCOME" "$TYPECHECK_OUTCOME" "$TEST_OUTCOME"
+          test "$BUILD_OUTCOME" = success
+          test "$LINT_OUTCOME" = success
+          test "$TYPECHECK_OUTCOME" = success
+          test "$TEST_OUTCOME" = success
 
       - name: Upload production builds
         uses: actions/upload-artifact@v4
