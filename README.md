@@ -62,9 +62,25 @@ The web app runs at `http://localhost:5173` and the API at `http://localhost:300
 
 The root `dev` command builds internal workspace packages first so their production exports exist, then starts the API and web development servers together.
 
+## Default provider: DeepSeek
+
+`pnpm dev` reads the root `.env` file. The example configuration uses DeepSeek's
+OpenAI-compatible API, so add your API key after copying it:
+
+```env
+LLM_PROVIDER=openai-compatible
+LLM_BASE_URL=https://api.deepseek.com
+LLM_MODEL=deepseek-v4-flash
+LLM_API_KEY=your-deepseek-api-key
+LLM_REASONING_EFFORT=
+LLM_THINKING_MODE=disabled
+```
+
+`pnpm dev:deepseek` remains available as an alias for `pnpm dev`.
+
 ## Mock provider
 
-The default configuration works without network access:
+For deterministic, offline development and tests, set:
 
 ```env
 LLM_PROVIDER=mock
@@ -81,36 +97,34 @@ timeout
 provider-error
 ```
 
-## Local Qwen or another OpenAI-compatible server
+## Local Qwen through Ollama
+
+Run the local Qwen profile with:
+
+```bash
+cp .env.qwen.example .env.qwen
+pnpm dev:qwen
+```
+
+It loads the ignored `.env.qwen` file. The example is preconfigured for Ollama;
+update `LLM_MODEL` to the exact identifier from `ollama list` if yours differs.
+
+## Another OpenAI-compatible server
 
 Set the URL to the endpoint exposed by your chosen inference server:
 
 ```env
 LLM_PROVIDER=openai-compatible
 LLM_BASE_URL=http://localhost:11434/v1
-LLM_MODEL=qwen2.5
+LLM_MODEL=your-model
 LLM_API_KEY=
 ```
-
-For Ollama specifically, its OpenAI-compatible endpoint is `http://localhost:11434/v1`. Set `LLM_MODEL` to the exact name shown by `ollama list`, such as `qwen3.6:27b`.
 
 Reasoning is disabled by default with `LLM_REASONING_EFFORT=none`. For a thinking-capable model, set it to `low`, `medium`, or `high` only when the task benefits from extra reasoning.
 
 For local troubleshooting, set `LLM_DEBUG_LOGGING=true`. This logs each request's endpoint, model, payload, response, status, and duration. It includes learner text and model output, so leave it off outside a private development environment.
 
 The adapter calls `POST {LLM_BASE_URL}/chat/completions`. The API key is optional because many local servers do not require one. Ports and model names differ between Ollama, llama.cpp servers, vLLM, LM Studio, and other runtimes, so use the base URL and model identifier shown by that server.
-
-## DeepSeek profile
-
-The repository includes an ignored `.env.deepseek` profile. Add your key there, then start it with:
-
-```bash
-pnpm dev:deepseek
-```
-
-It uses DeepSeek's `deepseek-v4-flash` model with thinking disabled, while preserving the Ollama settings in `.env`.
-
-The DeepSeek launcher clears Ollama's `LLM_REASONING_EFFORT` setting because DeepSeek does not accept `none` for that field.
 
 ## Hosted OpenAI-compatible endpoint
 

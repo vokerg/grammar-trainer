@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "pnpm build && pnpm --parallel --filter @grammar/api --filter @grammar/web dev",
-    "dev:deepseek": "pnpm build && pnpm --parallel --filter @grammar/api --filter @grammar/web dev:deepseek",
+    "dev:deepseek": "pnpm dev",
+    "dev:qwen": "pnpm build && pnpm --parallel --filter @grammar/api --filter @grammar/web dev:qwen",
     "build": "pnpm -r build",
     "test": "pnpm build && pnpm -r test",
     "lint": "pnpm build && pnpm -r lint",
@@ -24,6 +25,7 @@
     "@eslint/js": "9.20.0",
     "@prisma/client": "6.4.1",
     "@types/node": "22.13.4",
+    "cross-env": "^10.1.0",
     "eslint": "9.20.1",
     "eslint-plugin-react-hooks": "5.2.0",
     "eslint-plugin-react-refresh": "0.4.18",
