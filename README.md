@@ -56,6 +56,8 @@ pnpm db:migrate
 pnpm dev
 ```
 
+The API loads the root `.env` file automatically in both development and production. Keep it local: it is ignored by Git.
+
 The web app runs at `http://localhost:5173` and the API at `http://localhost:3001` by default.
 
 The root `dev` command builds internal workspace packages first so their production exports exist, then starts the API and web development servers together.
@@ -89,6 +91,8 @@ LLM_BASE_URL=http://localhost:11434/v1
 LLM_MODEL=qwen2.5
 LLM_API_KEY=
 ```
+
+For Ollama specifically, its OpenAI-compatible endpoint is `http://localhost:11434/v1`. Set `LLM_MODEL` to the exact name shown by `ollama list`, such as `qwen3.6:27b`.
 
 The adapter calls `POST {LLM_BASE_URL}/chat/completions`. The API key is optional because many local servers do not require one. Ports and model names differ between Ollama, llama.cpp servers, vLLM, LM Studio, and other runtimes, so use the base URL and model identifier shown by that server.
 
