@@ -24,6 +24,9 @@ const env = loadEnv({
   LLM_TIMEOUT_MS: '1000',
   LLM_MAX_RETRIES: '1',
   LLM_STORE_RAW_RESPONSE: 'false',
+  LLM_DEBUG_LOGGING: 'false',
+  LLM_REASONING_EFFORT: 'none',
+  LLM_THINKING_MODE: 'default',
   MOCK_LLM_MODE: 'success',
   LOG_LEVEL: 'silent',
 });
@@ -58,7 +61,7 @@ async function createTestApp(
 }
 
 describe('grammar trainer API', () => {
-  it('creates a submission, persists analysis, and creates a training item', async () => {
+  it('creates a submission, persists analysis, and creates a contextual training item', async () => {
     const app = await createTestApp();
     const response = await app.inject({
       method: 'POST',
@@ -70,7 +73,9 @@ describe('grammar trainer API', () => {
     expect(body.status).toBe('completed');
     expect(body.trainingItemsCreated).toBe(1);
     expect(await prisma.submission.count()).toBe(1);
-    expect(await prisma.trainingItem.count()).toBe(1);
+    const item = await prisma.trainingItem.findFirstOrThrow();
+    expect(item.exerciseType).toBe('CONTEXT');
+    expect(item.correctForm).toBe('Jeg synes nyheden var interessant.');
     await app.close();
   });
 
@@ -94,7 +99,7 @@ describe('grammar trainer API', () => {
     await app.close();
   });
 
-  it('merges duplicate training items', async () => {
+  it('merges duplicate training items while refreshing context', async () => {
     const app = await createTestApp();
     for (let count = 0; count < 2; count += 1) {
       await app.inject({
@@ -119,11 +124,12 @@ describe('grammar trainer API', () => {
     expect(response.statusCode).toBe(200);
     expect(response.body).not.toContain('correctForm');
     expect(response.body).not.toContain('normalizedCorrect');
+    expect(response.json().items[0].exerciseType).toBe('context');
     expect(response.json().items[0].options).toHaveLength(4);
     await app.close();
   });
 
-  it('records correct and incorrect answers and rejects unknown options', async () => {
+  it('records contextual answers and rejects unknown options', async () => {
     const app = await createTestApp();
     await app.inject({
       method: 'POST',
@@ -134,13 +140,13 @@ describe('grammar trainer API', () => {
     const correct = await app.inject({
       method: 'POST',
       url: `/api/training/items/${item.id}/answer`,
-      payload: { selectedOption: 'interessant' },
+      payload: { selectedOption: item.correctForm },
     });
     expect(correct.json().wasCorrect).toBe(true);
     const incorrect = await app.inject({
       method: 'POST',
       url: `/api/training/items/${item.id}/answer`,
-      payload: { selectedOption: 'interesant' },
+      payload: { selectedOption: item.originalForm },
     });
     expect(incorrect.json().wasCorrect).toBe(false);
     const invalid = await app.inject({
