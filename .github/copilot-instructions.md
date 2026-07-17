@@ -35,15 +35,15 @@ Dependency direction: routes → services → repository interfaces. Prisma stay
 
 ## Where changes belong
 
-| Change                      | Location                                     |
-| --------------------------- | -------------------------------------------- |
-| API schema/type             | `packages/shared`                            |
-| LLM provider/prompt/parsing | `packages/llm`                               |
-| Persistence/query           | API repository layer + Prisma                |
-| Use-case behavior           | `apps/api/src/services`                      |
-| HTTP validation/status      | `apps/api/src/routes`                        |
-| Frontend requests           | `apps/web/src/api`                           |
-| UI behavior/translations    | `apps/web/src/routes`, `components`, `i18n`  |
+| Change                      | Location                                    |
+| --------------------------- | ------------------------------------------- |
+| API schema/type             | `packages/shared`                           |
+| LLM provider/prompt/parsing | `packages/llm`                              |
+| Persistence/query           | API repository layer + Prisma               |
+| Use-case behavior           | `apps/api/src/services`                     |
+| HTTP validation/status      | `apps/api/src/routes`                       |
+| Frontend requests           | `apps/web/src/api`                          |
+| UI behavior/translations    | `apps/web/src/routes`, `components`, `i18n` |
 
 ## Development rules
 

@@ -87,7 +87,9 @@ export function TrainingPage() {
         <span>
           {index + 1} / {session.data.items.length}
         </span>
-        <span>{t('training.active', { count: stats.data?.activeItems ?? session.data.items.length })}</span>
+        <span>
+          {t('training.active', { count: stats.data?.activeItems ?? session.data.items.length })}
+        </span>
       </div>
       <div className="progress-track" aria-hidden="true">
         <span style={{ width: `${((index + 1) / session.data.items.length) * 100}%` }} />
@@ -126,11 +128,13 @@ export function TrainingPage() {
             <p>{t('training.keyboard')}</p>
           ) : wasCorrect ? (
             <p>
-              <strong>{t('training.correct')}</strong> {t('training.correctBody', { answer: correctAnswer })}
+              <strong>{t('training.correct')}</strong>{' '}
+              {t('training.correctBody', { answer: correctAnswer })}
             </p>
           ) : (
             <p>
-              <strong>{t('training.wrong')}</strong> {t('training.correctBody', { answer: correctAnswer })}
+              <strong>{t('training.wrong')}</strong>{' '}
+              {t('training.correctBody', { answer: correctAnswer })}
             </p>
           )}
         </div>

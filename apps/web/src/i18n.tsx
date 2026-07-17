@@ -1,16 +1,5 @@
-import {
-  SupportedLanguageSchema,
-  languageToLocale,
-  type SupportedLanguage,
-} from '@grammar/shared';
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
+import { SupportedLanguageSchema, languageToLocale, type SupportedLanguage } from '@grammar/shared';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 const dictionaries: Record<SupportedLanguage, Record<string, string>> = {
   da: {
@@ -52,11 +41,13 @@ const dictionaries: Record<SupportedLanguage, Record<string, string>> = {
     'result.none': 'Vi fandt ingen tydelige fejl i denne tekst.',
     'result.startTraining': 'Start træning',
     'result.howTitle': 'Sådan vælges øvelser',
-    'result.howBody': 'En fejl bliver kun til træning, når der findes fire tydelige sætninger med samme kontekst. Store omskrivninger og store begyndelsesbogstaver trænes ikke her. Tegnsætning kan trænes, når valget er tydeligt i en hel sætning.',
+    'result.howBody':
+      'En fejl bliver kun til træning, når der findes fire tydelige sætninger med samme kontekst. Store omskrivninger og store begyndelsesbogstaver trænes ikke her. Tegnsætning kan trænes, når valget er tydeligt i en hel sætning.',
     'training.loading': 'Finder dine øvesætninger…',
     'training.loadError': 'Træningen kunne ikke hentes.',
     'training.emptyTitle': 'Ingen øvelser endnu',
-    'training.emptyBody': 'Skriv en tekst først. Gode fejl med tydelig kontekst bliver automatisk til øvelser.',
+    'training.emptyBody':
+      'Skriv en tekst først. Gode fejl med tydelig kontekst bliver automatisk til øvelser.',
     'training.finished': 'Træningen er færdig',
     'training.title': 'Flot arbejde',
     'training.score': '{correct} af {total} rigtige',
@@ -80,10 +71,12 @@ const dictionaries: Record<SupportedLanguage, Record<string, string>> = {
     'status.pending': 'arbejder',
     'mistake.added': 'Tilføjet til træning',
     'mistake.notAdded': 'Ikke tilføjet',
-    'reason.model-not-trainable': 'Modellen vurderede, at fire tydelige kontekstvalg ikke kunne laves.',
+    'reason.model-not-trainable':
+      'Modellen vurderede, at fire tydelige kontekstvalg ikke kunne laves.',
     'reason.capitalization-excluded': 'Store begyndelsesbogstaver trænes ikke i denne øvelsestype.',
     'reason.missing-context': 'Der manglede en hel sætning med fire sammenlignelige valg.',
-    'reason.invalid-options': 'Svarmulighederne var for ens, for lange eller ikke tydeligt sammenlignelige.',
+    'reason.invalid-options':
+      'Svarmulighederne var for ens, for lange eller ikke tydeligt sammenlignelige.',
     'category.spelling': 'stavning',
     'category.grammar': 'grammatik',
     'category.word-choice': 'ordvalg',
@@ -131,11 +124,13 @@ const dictionaries: Record<SupportedLanguage, Record<string, string>> = {
     'result.none': 'We found no clear mistakes in this text.',
     'result.startTraining': 'Start practising',
     'result.howTitle': 'How exercises are selected',
-    'result.howBody': 'A mistake becomes an exercise only when four clear sentences can use the same context. Large rewrites and capitalization are not trained here. Punctuation can be trained when the choice is clear in a full sentence.',
+    'result.howBody':
+      'A mistake becomes an exercise only when four clear sentences can use the same context. Large rewrites and capitalization are not trained here. Punctuation can be trained when the choice is clear in a full sentence.',
     'training.loading': 'Finding your practice sentences…',
     'training.loadError': 'The training session could not be loaded.',
     'training.emptyTitle': 'No exercises yet',
-    'training.emptyBody': 'Write a text first. Clear mistakes with useful context become exercises automatically.',
+    'training.emptyBody':
+      'Write a text first. Clear mistakes with useful context become exercises automatically.',
     'training.finished': 'Training complete',
     'training.title': 'Great work',
     'training.score': '{correct} of {total} correct',
@@ -159,7 +154,8 @@ const dictionaries: Record<SupportedLanguage, Record<string, string>> = {
     'status.pending': 'working',
     'mistake.added': 'Added to training',
     'mistake.notAdded': 'Not added',
-    'reason.model-not-trainable': 'The model could not make four clear contextual choices for this correction.',
+    'reason.model-not-trainable':
+      'The model could not make four clear contextual choices for this correction.',
     'reason.capitalization-excluded': 'Capitalization is not trained in this exercise type.',
     'reason.missing-context': 'A full sentence with four comparable choices was missing.',
     'reason.invalid-options': 'The options were too similar, too long, or not clearly comparable.',
@@ -191,7 +187,8 @@ const dictionaries: Record<SupportedLanguage, Record<string, string>> = {
     'write.submit': 'Text prüfen',
     'write.short': 'Schreibe mindestens 3 Zeichen.',
     'write.timeout': 'Das Sprachmodell hat zu lange gebraucht. Dein Text ist gespeichert.',
-    'write.failed': 'Dein Text ist gespeichert, aber die Analyse ist fehlgeschlagen. Versuche es auf der Ergebnisseite erneut.',
+    'write.failed':
+      'Dein Text ist gespeichert, aber die Analyse ist fehlgeschlagen. Versuche es auf der Ergebnisseite erneut.',
     'loading.default': 'Dein Text wird bearbeitet…',
     'error.title': 'Das konnte nicht abgeschlossen werden.',
     'result.loading': 'Feedback wird geladen…',
@@ -210,11 +207,13 @@ const dictionaries: Record<SupportedLanguage, Record<string, string>> = {
     'result.none': 'Wir haben keine eindeutigen Fehler gefunden.',
     'result.startTraining': 'Übung starten',
     'result.howTitle': 'So werden Übungen ausgewählt',
-    'result.howBody': 'Ein Fehler wird nur dann zur Übung, wenn vier klare Sätze denselben Kontext nutzen. Große Umschreibungen und Großschreibung werden hier nicht trainiert. Zeichensetzung kann trainiert werden, wenn die Wahl im ganzen Satz eindeutig ist.',
+    'result.howBody':
+      'Ein Fehler wird nur dann zur Übung, wenn vier klare Sätze denselben Kontext nutzen. Große Umschreibungen und Großschreibung werden hier nicht trainiert. Zeichensetzung kann trainiert werden, wenn die Wahl im ganzen Satz eindeutig ist.',
     'training.loading': 'Übungssätze werden gesucht…',
     'training.loadError': 'Die Übung konnte nicht geladen werden.',
     'training.emptyTitle': 'Noch keine Übungen',
-    'training.emptyBody': 'Schreibe zuerst einen Text. Klare Fehler mit gutem Kontext werden automatisch zu Übungen.',
+    'training.emptyBody':
+      'Schreibe zuerst einen Text. Klare Fehler mit gutem Kontext werden automatisch zu Übungen.',
     'training.finished': 'Übung abgeschlossen',
     'training.title': 'Tolle Arbeit',
     'training.score': '{correct} von {total} richtig',
@@ -238,10 +237,13 @@ const dictionaries: Record<SupportedLanguage, Record<string, string>> = {
     'status.pending': 'wird bearbeitet',
     'mistake.added': 'Zur Übung hinzugefügt',
     'mistake.notAdded': 'Nicht hinzugefügt',
-    'reason.model-not-trainable': 'Das Modell konnte keine vier klaren Kontextmöglichkeiten erstellen.',
+    'reason.model-not-trainable':
+      'Das Modell konnte keine vier klaren Kontextmöglichkeiten erstellen.',
     'reason.capitalization-excluded': 'Großschreibung wird in diesem Übungstyp nicht trainiert.',
-    'reason.missing-context': 'Ein vollständiger Satz mit vier vergleichbaren Möglichkeiten fehlte.',
-    'reason.invalid-options': 'Die Möglichkeiten waren zu ähnlich, zu lang oder nicht gut vergleichbar.',
+    'reason.missing-context':
+      'Ein vollständiger Satz mit vier vergleichbaren Möglichkeiten fehlte.',
+    'reason.invalid-options':
+      'Die Möglichkeiten waren zu ähnlich, zu lang oder nicht gut vergleichbar.',
     'category.spelling': 'Rechtschreibung',
     'category.grammar': 'Grammatik',
     'category.word-choice': 'Wortwahl',
@@ -270,7 +272,8 @@ const dictionaries: Record<SupportedLanguage, Record<string, string>> = {
     'write.submit': 'Проверить текст',
     'write.short': 'Напиши хотя бы 3 знака.',
     'write.timeout': 'Модель отвечала слишком долго. Текст сохранён, можно попробовать снова.',
-    'write.failed': 'Текст сохранён, но проверка не завершилась. Попробуй снова на странице результата.',
+    'write.failed':
+      'Текст сохранён, но проверка не завершилась. Попробуй снова на странице результата.',
     'loading.default': 'Работаем с твоим текстом…',
     'error.title': 'Не удалось завершить действие.',
     'result.loading': 'Загружаем отзыв…',
@@ -289,11 +292,13 @@ const dictionaries: Record<SupportedLanguage, Record<string, string>> = {
     'result.none': 'Мы не нашли явных ошибок в этом тексте.',
     'result.startTraining': 'Начать тренировку',
     'result.howTitle': 'Как выбираются упражнения',
-    'result.howBody': 'Ошибка становится упражнением, только если можно составить четыре понятных предложения в одном контексте. Большие переписывания и заглавные буквы здесь не тренируются. Пунктуацию можно тренировать, когда выбор однозначен в целом предложении.',
+    'result.howBody':
+      'Ошибка становится упражнением, только если можно составить четыре понятных предложения в одном контексте. Большие переписывания и заглавные буквы здесь не тренируются. Пунктуацию можно тренировать, когда выбор однозначен в целом предложении.',
     'training.loading': 'Ищем предложения для тренировки…',
     'training.loadError': 'Не удалось загрузить тренировку.',
     'training.emptyTitle': 'Упражнений пока нет',
-    'training.emptyBody': 'Сначала напиши текст. Понятные ошибки с хорошим контекстом станут упражнениями автоматически.',
+    'training.emptyBody':
+      'Сначала напиши текст. Понятные ошибки с хорошим контекстом станут упражнениями автоматически.',
     'training.finished': 'Тренировка завершена',
     'training.title': 'Отличная работа',
     'training.score': '{correct} из {total} правильно',
@@ -317,7 +322,8 @@ const dictionaries: Record<SupportedLanguage, Record<string, string>> = {
     'status.pending': 'в работе',
     'mistake.added': 'Добавлено в тренировку',
     'mistake.notAdded': 'Не добавлено',
-    'reason.model-not-trainable': 'Модель не смогла составить четыре понятных варианта в одном контексте.',
+    'reason.model-not-trainable':
+      'Модель не смогла составить четыре понятных варианта в одном контексте.',
     'reason.capitalization-excluded': 'Заглавные буквы не тренируются в этом типе упражнений.',
     'reason.missing-context': 'Не хватило полного предложения с четырьмя сравнимыми вариантами.',
     'reason.invalid-options': 'Варианты были слишком похожими, длинными или плохо сравнимыми.',

@@ -69,9 +69,7 @@ describe('TrainingPage', () => {
     mockTrainingFetch();
     const user = userEvent.setup();
     renderWithProviders(<TrainingPage />);
-    await user.click(
-      await screen.findByRole('button', { name: 'Svar 2: Det var interessant.' }),
-    );
+    await user.click(await screen.findByRole('button', { name: 'Svar 2: Det var interessant.' }));
     expect(await screen.findByText(/Ja — godt set/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Næste øvelse' })).toBeEnabled();
   });

@@ -29,9 +29,7 @@ export function MistakeCard({ mistake }: { mistake: ApiMistake }) {
           <span className="tag muted">{t('mistake.notAdded')}</span>
         )}
       </div>
-      {mistake.addedToTraining ? null : (
-        <p className="training-reason">{t(`reason.${reason}`)}</p>
-      )}
+      {mistake.addedToTraining ? null : <p className="training-reason">{t(`reason.${reason}`)}</p>}
     </article>
   );
 }
