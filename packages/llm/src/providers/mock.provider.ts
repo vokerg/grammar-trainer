@@ -1,42 +1,59 @@
 import type { LlmConfig } from '@grammar/config';
-import type { GrammarAnalysis } from '@grammar/shared';
+import type { GrammarAnalysis, SupportedLanguage } from '@grammar/shared';
 import { LlmError } from '../errors/llm-errors.js';
 import type { AnalyzeTextInput, LanguageModelProvider, ProviderAnalysisResult } from '../types.js';
 
-const cleanFeedback: Record<string, string> = {
+const cleanFeedback: Record<SupportedLanguage, string> = {
   da: 'Du skriver tydeligt, og din tekst er let at følge.',
   en: 'Your writing is clear and easy to follow.',
   de: 'Dein Text ist klar und leicht zu verstehen.',
-  sv: 'Din text är tydlig och lätt att följa.',
-  no: 'Teksten din er tydelig og lett å følge.',
+  ru: 'Ты пишешь понятно, и за твоим текстом легко следить.',
 };
 
+const styleTip: Record<SupportedLanguage, string> = {
+  da: 'Prøv at variere begyndelsen på dine sætninger.',
+  en: 'Try varying how your sentences begin.',
+  de: 'Versuche, deine Sätze unterschiedlich zu beginnen.',
+  ru: 'Попробуй по-разному начинать предложения.',
+};
+
+const explanation: Record<SupportedLanguage, string> = {
+  da: 'Ordet staves med dobbelt s.',
+  en: 'The word is spelled with a double s.',
+  de: 'Das Wort wird mit einem zusätzlichen s geschrieben.',
+  ru: 'В этом слове нужна двойная согласная.',
+};
+
+function replaceKnown(value: string, replacement: string): string {
+  return value.replace(/interesant/gi, replacement);
+}
+
 function analysisFor(input: AnalyzeTextInput, noMistakes: boolean): GrammarAnalysis {
+  const language = input.requestedLanguage as SupportedLanguage;
   const hasKnownMistake = !noMistakes && /interesant/i.test(input.text);
+  const correctedText = hasKnownMistake ? replaceKnown(input.text, 'interessant') : input.text;
   return {
     detectedLanguage: input.requestedLanguage,
-    overallFeedback: cleanFeedback[input.requestedLanguage] ?? cleanFeedback.en ?? 'Good work.',
-    styleFeedback: hasKnownMistake
-      ? [
-          input.requestedLanguage === 'da'
-            ? 'Prøv at variere begyndelsen på dine sætninger.'
-            : 'Try varying how your sentences begin.',
-        ]
-      : [],
-    correctedText: hasKnownMistake ? input.text.replace(/interesant/gi, 'interessant') : input.text,
+    overallFeedback: cleanFeedback[language] ?? cleanFeedback.en,
+    styleFeedback: hasKnownMistake ? [styleTip[language] ?? styleTip.en] : [],
+    correctedText,
     mistakes: hasKnownMistake
       ? [
           {
             original: 'interesant',
             correct: 'interessant',
-            explanation:
-              input.requestedLanguage === 'da'
-                ? 'Ordet staves med dobbelt s.'
-                : 'The word is spelled with a double s.',
+            explanation: explanation[language] ?? explanation.en,
             category: 'spelling',
             originalSentence: input.text,
             trainable: true,
-            distractors: ['interressant', 'intressant'],
+            trainingOptions: {
+              originalOption: input.text,
+              correctOption: correctedText,
+              distractors: [
+                replaceKnown(input.text, 'interressant'),
+                replaceKnown(input.text, 'intressant'),
+              ],
+            },
           },
         ]
       : [],
