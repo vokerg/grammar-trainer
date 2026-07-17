@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "pnpm build && pnpm --parallel --filter @grammar/api --filter @grammar/web dev",
-    "dev:deepseek": "pnpm build && pnpm --parallel --filter @grammar/api --filter @grammar/web dev:deepseek",
+    "dev:deepseek": "pnpm dev",
+    "dev:qwen": "pnpm build && pnpm --parallel --filter @grammar/api --filter @grammar/web dev:qwen",
     "build": "pnpm -r build",
     "test": "pnpm build && pnpm -r test",
     "lint": "pnpm build && pnpm -r lint",
