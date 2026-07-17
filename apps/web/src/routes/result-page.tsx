@@ -1,28 +1,35 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getSubmission, retrySubmission } from '../api/submissions.js';
 import { ErrorMessage } from '../components/error-message.js';
 import { LoadingState } from '../components/loading-state.js';
 import { MistakeCard } from '../components/mistake-card.js';
+import { WordMascot } from '../components/word-mascot.js';
+import { useI18n } from '../i18n.js';
 
 export function ResultPage() {
   const { id = '' } = useParams();
   const queryClient = useQueryClient();
+  const { setLanguage, t } = useI18n();
   const query = useQuery({
     queryKey: ['submission', id],
     queryFn: () => getSubmission(id),
     enabled: id.length > 0,
   });
+  useEffect(() => {
+    if (query.data !== undefined) setLanguage(query.data.language);
+  }, [query.data, setLanguage]);
   const retry = useMutation({
     mutationFn: () => retrySubmission(id),
     onSuccess: async () => queryClient.invalidateQueries({ queryKey: ['submission', id] }),
   });
 
-  if (query.isPending) return <LoadingState label="Henter din feedback…" />;
+  if (query.isPending) return <LoadingState label={t('result.loading')} />;
   if (query.isError || query.data === undefined) {
     return (
       <section className="page">
-        <ErrorMessage message="Resultatet kunne ikke hentes." />
+        <ErrorMessage message={t('result.loadError')} />
       </section>
     );
   }
@@ -32,18 +39,18 @@ export function ResultPage() {
   if (result.status === 'failed' || result.analysis === undefined) {
     return (
       <section className="page narrow-page">
-        <h1>Din tekst er gemt</h1>
-        <ErrorMessage message="Sproganalysen blev ikke færdig, men du har ikke mistet din tekst." />
+        <h1>{t('result.savedTitle')}</h1>
+        <ErrorMessage message={t('result.savedBody')} />
         <div className="action-row">
           <button
             className="primary-button"
             onClick={() => retry.mutate()}
             disabled={retry.isPending}
           >
-            Prøv analysen igen
+            {t('result.retry')}
           </button>
           <Link className="secondary-button" to="/">
-            Skriv en ny tekst
+            {t('result.new')}
           </Link>
         </div>
       </section>
@@ -52,25 +59,30 @@ export function ResultPage() {
 
   return (
     <section className="page result-page">
-      <p className="eyebrow">Din feedback</p>
-      <h1>Godt skrevet</h1>
+      <div className="result-heading">
+        <div>
+          <p className="eyebrow">{t('result.eyebrow')}</p>
+          <h1>{t('result.title')}</h1>
+        </div>
+        <WordMascot compact />
+      </div>
       <article className="feedback-card highlight-card">
-        <h2>Det gjorde du godt</h2>
+        <h2>{t('result.positive')}</h2>
         <p>{result.analysis.overallFeedback}</p>
       </article>
       <div className="two-column">
         <article className="feedback-card">
-          <h2>Din tekst</h2>
+          <h2>{t('result.original')}</h2>
           <p className="preserve-lines">{query.data.text}</p>
         </article>
         <article className="feedback-card">
-          <h2>Forslag til rettet tekst</h2>
+          <h2>{t('result.corrected')}</h2>
           <p className="preserve-lines">{result.analysis.correctedText}</p>
         </article>
       </div>
       {result.analysis.styleFeedback.length > 0 ? (
         <article className="feedback-card">
-          <h2>Stiltips</h2>
+          <h2>{t('result.style')}</h2>
           <ul>
             {result.analysis.styleFeedback.map((feedback) => (
               <li key={feedback}>{feedback}</li>
@@ -78,10 +90,19 @@ export function ResultPage() {
           </ul>
         </article>
       ) : null}
+      <article className="feedback-card training-info-card">
+        <div className="info-icon" aria-hidden="true">
+          ✦
+        </div>
+        <div>
+          <h2>{t('result.howTitle')}</h2>
+          <p>{t('result.howBody')}</p>
+        </div>
+      </article>
       <section aria-labelledby="mistakes-heading">
-        <h2 id="mistakes-heading">Ord og udtryk at øve</h2>
+        <h2 id="mistakes-heading">{t('result.mistakes')}</h2>
         {result.analysis.mistakes.length === 0 ? (
-          <p className="empty-state">Vi fandt ingen tydelige fejl i denne tekst.</p>
+          <p className="empty-state">{t('result.none')}</p>
         ) : (
           <div className="mistake-grid">
             {result.analysis.mistakes.map((mistake) => (
@@ -92,10 +113,10 @@ export function ResultPage() {
       </section>
       <div className="action-row">
         <Link className="primary-button" to="/training">
-          Start træning
+          {t('result.startTraining')}
         </Link>
         <Link className="secondary-button" to="/">
-          Skriv en ny tekst
+          {t('result.new')}
         </Link>
       </div>
     </section>

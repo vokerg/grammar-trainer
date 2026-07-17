@@ -1,34 +1,86 @@
-import { normalizeTrainingText, type GrammarAnalysis, type GrammarMistake } from '@grammar/shared';
+import {
+  normalizeTrainingText,
+  type GrammarAnalysis,
+  type GrammarMistake,
+  type TrainingOptions,
+  type TrainingReason,
+} from '@grammar/shared';
 
 export type SanitizedMistake = GrammarMistake & {
   normalizedOriginal: string;
   normalizedCorrect: string;
+  trainingReason: Exclude<TrainingReason, 'added'>;
 };
 
-function isReasonableLength(values: string[]): boolean {
-  if (values.some((value) => value.trim().length === 0 || value.length > 60)) return false;
+function replaceFirst(value: string, target: string, replacement: string): string | null {
+  const index = value.indexOf(target);
+  if (index < 0) return null;
+  return `${value.slice(0, index)}${replacement}${value.slice(index + target.length)}`;
+}
+
+function buildLegacyContext(mistake: GrammarMistake): TrainingOptions | undefined {
+  if (mistake.trainingOptions !== undefined) return mistake.trainingOptions;
+  if (mistake.originalSentence === undefined || mistake.distractors === undefined) return undefined;
+  const correctOption = replaceFirst(mistake.originalSentence, mistake.original, mistake.correct);
+  const distractorOne = replaceFirst(
+    mistake.originalSentence,
+    mistake.original,
+    mistake.distractors[0],
+  );
+  const distractorTwo = replaceFirst(
+    mistake.originalSentence,
+    mistake.original,
+    mistake.distractors[1],
+  );
+  if (correctOption === null || distractorOne === null || distractorTwo === null) return undefined;
+  return {
+    originalOption: mistake.originalSentence,
+    correctOption,
+    distractors: [distractorOne, distractorTwo],
+  };
+}
+
+function contextIsReasonable(options: TrainingOptions, language: string): boolean {
+  const values = [options.originalOption, options.correctOption, ...options.distractors];
+  if (values.some((value) => value.trim().length < 3 || value.length > 500)) return false;
+  if (values.some((value) => value.trim().split(/\s+/).length < 2)) return false;
+  const normalized = values.map((value) => normalizeTrainingText(value, language));
+  if (new Set(normalized).size !== 4) return false;
   const lengths = values.map((value) => value.trim().length);
   const shortest = Math.max(1, Math.min(...lengths));
-  return Math.max(...lengths) / shortest <= 4;
+  return Math.max(...lengths) / shortest <= 1.8;
 }
 
 export function sanitizeMistake(mistake: GrammarMistake, language: string): SanitizedMistake {
   const normalizedOriginal = normalizeTrainingText(mistake.original, language);
   const normalizedCorrect = normalizeTrainingText(mistake.correct, language);
-  const normalizedOptions = [
+  const trainingOptions = buildLegacyContext(mistake);
+
+  let trainable = false;
+  let trainingReason: Exclude<TrainingReason, 'added'> = 'model-not-trainable';
+  if (mistake.category === 'capitalization') {
+    trainingReason = 'capitalization-excluded';
+  } else if (!mistake.trainable) {
+    trainingReason = 'model-not-trainable';
+  } else if (trainingOptions === undefined) {
+    trainingReason = 'missing-context';
+  } else if (
+    normalizedOriginal === normalizedCorrect ||
+    !contextIsReasonable(trainingOptions, language)
+  ) {
+    trainingReason = 'invalid-options';
+  } else {
+    trainable = true;
+  }
+
+  return {
+    ...mistake,
+    ...(trainingOptions === undefined ? {} : { trainingOptions }),
+    trainable,
+    trainingReason,
     normalizedOriginal,
     normalizedCorrect,
-    ...mistake.distractors.map((value) => normalizeTrainingText(value, language)),
-  ];
-  const unique = new Set(normalizedOptions);
-  const trainable =
-    mistake.trainable &&
-    mistake.category !== 'punctuation' &&
-    unique.size === 4 &&
-    normalizedOriginal !== normalizedCorrect &&
-    isReasonableLength([mistake.original, mistake.correct, ...mistake.distractors]);
-
-  return { ...mistake, trainable, normalizedOriginal, normalizedCorrect };
+  };
 }
 
 export function sanitizeAnalysis(

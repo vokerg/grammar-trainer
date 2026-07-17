@@ -1,18 +1,21 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { answerTrainingItem, getTrainingSession, getTrainingStats } from '../api/training.js';
 import { ErrorMessage } from '../components/error-message.js';
 import { LoadingState } from '../components/loading-state.js';
+import { WordMascot } from '../components/word-mascot.js';
 import { useKeyboardOptions } from '../hooks/use-keyboard-options.js';
+import { useI18n } from '../i18n.js';
 
 export function TrainingPage() {
+  const { language, t } = useI18n();
   const session = useQuery({
-    queryKey: ['training-session', 'da'],
-    queryFn: () => getTrainingSession('da'),
+    queryKey: ['training-session', language],
+    queryFn: () => getTrainingSession(language),
   });
   const stats = useQuery({
-    queryKey: ['training-stats', 'da'],
-    queryFn: () => getTrainingStats('da'),
+    queryKey: ['training-stats', language],
+    queryFn: () => getTrainingStats(language),
   });
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
@@ -26,6 +29,12 @@ export function TrainingPage() {
       if (result.wasCorrect) setCorrectCount((count) => count + 1);
     },
   });
+  useEffect(() => {
+    setIndex(0);
+    setSelected(null);
+    setCorrectAnswer(null);
+    setCorrectCount(0);
+  }, [language]);
   const current = session.data?.items[index];
   const selectOption = useCallback(
     (optionIndex: number) => {
@@ -39,33 +48,33 @@ export function TrainingPage() {
   );
   useKeyboardOptions(current !== undefined && selected === null, selectOption);
 
-  if (session.isPending) return <LoadingState label="Finder dine øveord…" />;
+  if (session.isPending) return <LoadingState label={t('training.loading')} />;
   if (session.isError || session.data === undefined)
     return (
       <section className="page">
-        <ErrorMessage message="Træningen kunne ikke hentes." />
+        <ErrorMessage message={t('training.loadError')} />
       </section>
     );
   if (session.data.items.length === 0) {
     return (
-      <section className="page narrow-page center-card">
-        <h1>Ingen øveord endnu</h1>
-        <p>Skriv en tekst først. Gode stave- og udtryksfejl bliver automatisk til øvelser.</p>
+      <section className="page narrow-page center-card empty-training-card">
+        <WordMascot compact />
+        <h1>{t('training.emptyTitle')}</h1>
+        <p>{t('training.emptyBody')}</p>
       </section>
     );
   }
   if (current === undefined) {
     const total = session.data.items.length;
     return (
-      <section className="page narrow-page center-card">
-        <p className="eyebrow">Træningen er færdig</p>
-        <h1>Flot arbejde</h1>
-        <p className="score">
-          {correctCount} af {total} rigtige
-        </p>
-        <p>Du øvede dig hele vejen igennem. Det er sådan, ord bliver lettere.</p>
+      <section className="page narrow-page center-card completion-card">
+        <WordMascot compact />
+        <p className="eyebrow">{t('training.finished')}</p>
+        <h1>{t('training.title')}</h1>
+        <p className="score">{t('training.score', { correct: correctCount, total })}</p>
+        <p>{t('training.summary')}</p>
         <button className="primary-button" onClick={() => window.location.reload()}>
-          Træn igen
+          {t('training.again')}
         </button>
       </section>
     );
@@ -78,15 +87,17 @@ export function TrainingPage() {
         <span>
           {index + 1} / {session.data.items.length}
         </span>
-        <span>{stats.data?.activeItems ?? session.data.items.length} aktive ord</span>
+        <span>
+          {t('training.active', { count: stats.data?.activeItems ?? session.data.items.length })}
+        </span>
       </div>
       <div className="progress-track" aria-hidden="true">
         <span style={{ width: `${((index + 1) / session.data.items.length) * 100}%` }} />
       </div>
       <article className="training-card">
-        <p className="eyebrow">{current.category}</p>
+        <p className="eyebrow">{t(`category.${current.category}`)}</p>
         <h1>{current.prompt}</h1>
-        <div className="option-grid">
+        <div className="option-grid context-options">
           {current.options.map((option, optionIndex) => {
             const isSelected = selected === option;
             const isCorrect = correctAnswer === option;
@@ -104,24 +115,26 @@ export function TrainingPage() {
                 className={`option-button${stateClass}`}
                 disabled={selected !== null}
                 onClick={() => selectOption(optionIndex)}
-                aria-label={`Svar ${optionIndex + 1}: ${option}`}
+                aria-label={t('training.answer', { number: optionIndex + 1, option })}
               >
                 <span>{optionIndex + 1}</span>
-                {option}
+                <span className="option-text">{option}</span>
               </button>
             );
           })}
         </div>
         <div className="answer-feedback" aria-live="polite">
           {correctAnswer === null ? (
-            <p>Du kan også bruge tasterne 1–4.</p>
+            <p>{t('training.keyboard')}</p>
           ) : wasCorrect ? (
             <p>
-              <strong>Ja — godt set!</strong> “{correctAnswer}” er den korrekte form.
+              <strong>{t('training.correct')}</strong>{' '}
+              {t('training.correctBody', { answer: correctAnswer })}
             </p>
           ) : (
             <p>
-              <strong>Godt forsøgt.</strong> Det rigtige svar er “{correctAnswer}”.
+              <strong>{t('training.wrong')}</strong>{' '}
+              {t('training.correctBody', { answer: correctAnswer })}
             </p>
           )}
         </div>
@@ -135,7 +148,7 @@ export function TrainingPage() {
               answer.reset();
             }}
           >
-            Næste ord
+            {t('training.next')}
           </button>
         )}
       </article>

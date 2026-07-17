@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const supportedLanguages = ['da', 'en', 'de', 'sv', 'no'] as const;
+export const supportedLanguages = ['da', 'en', 'de', 'ru'] as const;
 export const SupportedLanguageSchema = z.enum(supportedLanguages);
 export type SupportedLanguage = z.infer<typeof SupportedLanguageSchema>;
 
@@ -16,6 +16,23 @@ export const mistakeCategories = [
 export const MistakeCategorySchema = z.enum(mistakeCategories);
 export type MistakeCategory = z.infer<typeof MistakeCategorySchema>;
 
+export const trainingReasonCodes = [
+  'added',
+  'model-not-trainable',
+  'capitalization-excluded',
+  'missing-context',
+  'invalid-options',
+] as const;
+export const TrainingReasonSchema = z.enum(trainingReasonCodes);
+export type TrainingReason = z.infer<typeof TrainingReasonSchema>;
+
+export const TrainingOptionsSchema = z.object({
+  originalOption: z.string().min(1).max(500),
+  correctOption: z.string().min(1).max(500),
+  distractors: z.tuple([z.string().min(1).max(500), z.string().min(1).max(500)]),
+});
+export type TrainingOptions = z.infer<typeof TrainingOptionsSchema>;
+
 export const GrammarMistakeSchema = z.object({
   original: z.string().min(1),
   correct: z.string().min(1),
@@ -23,7 +40,9 @@ export const GrammarMistakeSchema = z.object({
   category: MistakeCategorySchema,
   originalSentence: z.string().min(1).optional(),
   trainable: z.boolean(),
-  distractors: z.tuple([z.string().min(1), z.string().min(1)]),
+  trainingOptions: TrainingOptionsSchema.optional(),
+  // Accepted temporarily so older OpenAI-compatible models can still be repaired into context options.
+  distractors: z.tuple([z.string().min(1), z.string().min(1)]).optional(),
 });
 
 export const GrammarAnalysisSchema = z.object({
@@ -51,6 +70,7 @@ export type CreateSubmissionRequest = z.infer<typeof CreateSubmissionRequestSche
 export const ApiMistakeSchema = GrammarMistakeSchema.extend({
   id: z.string(),
   addedToTraining: z.boolean(),
+  trainingReason: TrainingReasonSchema.optional(),
 });
 
 export const AnalysisPayloadSchema = z.object({
@@ -97,6 +117,7 @@ export const TrainingSessionItemSchema = z.object({
   id: z.string(),
   category: MistakeCategorySchema,
   prompt: z.string(),
+  exerciseType: z.enum(['form', 'context']).default('form'),
   options: z.tuple([z.string(), z.string(), z.string(), z.string()]),
 });
 export const TrainingSessionResponseSchema = z.object({
@@ -106,7 +127,7 @@ export const TrainingSessionResponseSchema = z.object({
 export type TrainingSessionResponse = z.infer<typeof TrainingSessionResponseSchema>;
 export type TrainingSessionItem = z.infer<typeof TrainingSessionItemSchema>;
 
-export const TrainingAnswerRequestSchema = z.object({ selectedOption: z.string().min(1).max(100) });
+export const TrainingAnswerRequestSchema = z.object({ selectedOption: z.string().min(1).max(500) });
 export const TrainingAnswerResponseSchema = z.object({
   wasCorrect: z.boolean(),
   correctAnswer: z.string(),
@@ -152,8 +173,7 @@ const languageLocales: Record<SupportedLanguage, string> = {
   da: 'da-DK',
   en: 'en-US',
   de: 'de-DE',
-  sv: 'sv-SE',
-  no: 'nb-NO',
+  ru: 'ru-RU',
 };
 
 export function languageToLocale(language: string): string {

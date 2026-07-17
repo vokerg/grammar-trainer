@@ -70,8 +70,12 @@ export class AnalyzeSubmissionService {
             ...(mistake.originalSentence === undefined
               ? {}
               : { originalSentence: mistake.originalSentence }),
+            ...(mistake.trainingOptions === undefined
+              ? {}
+              : { trainingOptions: mistake.trainingOptions }),
+            ...(mistake.distractors === undefined ? {} : { distractors: mistake.distractors }),
             trainable: mistake.trainable,
-            distractors: mistake.distractors,
+            trainingReason: addedToTraining ? ('added' as const) : mistake.trainingReason,
             addedToTraining,
           });
         }

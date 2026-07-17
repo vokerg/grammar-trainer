@@ -1,5 +1,10 @@
 import type { Analysis, Mistake, Submission } from '@prisma/client';
-import type { SubmissionAnalysisResponse, SubmissionDetail } from '@grammar/shared';
+import {
+  TrainingReasonSchema,
+  type SubmissionAnalysisResponse,
+  type SubmissionDetail,
+  type TrainingReason,
+} from '@grammar/shared';
 import { fromPrismaCategory } from '../domain/category.js';
 import { AppError } from '../domain/errors.js';
 import type { RepositoryContext } from '../repositories/contracts.js';
@@ -14,6 +19,14 @@ function parseStyleFeedback(value: string | null): string[] {
   } catch {
     return [];
   }
+}
+
+function fallbackReason(mistake: Mistake): TrainingReason {
+  if (mistake.trainingItemId !== null) return 'added';
+  const parsed = TrainingReasonSchema.safeParse(mistake.trainingReason);
+  if (parsed.success) return parsed.data;
+  if (mistake.category === 'CAPITALIZATION') return 'capitalization-excluded';
+  return mistake.trainable ? 'missing-context' : 'model-not-trainable';
 }
 
 function mapAnalysis(
@@ -33,19 +46,38 @@ function mapAnalysis(
       overallFeedback: analysis.overallFeedback ?? '',
       styleFeedback: parseStyleFeedback(analysis.styleFeedback),
       correctedText: analysis.correctedText ?? '',
-      mistakes: analysis.mistakes.map((mistake) => ({
-        id: mistake.id,
-        original: mistake.original,
-        correct: mistake.correct,
-        explanation: mistake.explanation,
-        category: fromPrismaCategory(mistake.category),
-        ...(mistake.originalSentence === null
-          ? {}
-          : { originalSentence: mistake.originalSentence }),
-        trainable: mistake.trainable,
-        distractors: [mistake.distractorOne ?? '', mistake.distractorTwo ?? ''],
-        addedToTraining: mistake.trainingItemId !== null,
-      })),
+      mistakes: analysis.mistakes.map((mistake) => {
+        const hasContext =
+          mistake.trainingOriginal !== null &&
+          mistake.trainingCorrect !== null &&
+          mistake.distractorOne !== null &&
+          mistake.distractorTwo !== null;
+        return {
+          id: mistake.id,
+          original: mistake.original,
+          correct: mistake.correct,
+          explanation: mistake.explanation,
+          category: fromPrismaCategory(mistake.category),
+          ...(mistake.originalSentence === null
+            ? {}
+            : { originalSentence: mistake.originalSentence }),
+          ...(hasContext
+            ? {
+                trainingOptions: {
+                  originalOption: mistake.trainingOriginal ?? '',
+                  correctOption: mistake.trainingCorrect ?? '',
+                  distractors: [mistake.distractorOne ?? '', mistake.distractorTwo ?? ''] as [
+                    string,
+                    string,
+                  ],
+                },
+              }
+            : {}),
+          trainable: mistake.trainable,
+          trainingReason: fallbackReason(mistake),
+          addedToTraining: mistake.trainingItemId !== null,
+        };
+      }),
     },
     trainingItemsCreated: analysis.mistakes.filter((mistake) => mistake.trainingItemId !== null)
       .length,

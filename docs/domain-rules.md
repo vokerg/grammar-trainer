@@ -5,44 +5,47 @@
 - **Submission:** learner text; exists even if analysis fails.
 - **Analysis:** one LLM attempt with pending/completed/failed status.
 - **Mistake:** one correction in one analysis.
-- **Training item:** reusable exercise created only from a valid trainable mistake.
+- **Training item:** reusable contextual exercise created only from a valid trainable mistake.
 - **Training attempt:** one submitted answer.
 
 Do not collapse these concepts into one table or lifecycle.
 
 ## Trainability
 
-Usually trainable:
+Usually trainable when four short contextual sentence options are possible:
 
 - spelling;
-- capitalization;
+- grammar;
 - joined/separated words;
 - short fixed expressions;
-- directly comparable short word-choice errors.
+- directly comparable word-choice errors;
+- punctuation with an unambiguous sentence-level choice.
 
-Usually not trainable:
+Not trainable in the current exercise type:
 
-- punctuation-only changes;
+- capitalization;
 - sentence or paragraph restructuring;
 - large rewrites;
 - optional style improvements;
 - ambiguous corrections;
-- cases without two plausible distractors.
+- cases without two plausible contextual distractors.
 
-A semantically invalid trainable item is downgraded to non-trainable; it must not fail the whole analysis.
+A semantically invalid item is downgraded to non-trainable; it must not fail the whole analysis. Persist a `trainingReason` so the result UI can explain the decision.
 
-## Four-option exercises
+## Four-option contextual exercises
 
-Options are:
+Options are complete short sentences or meaningful word sequences:
 
-1. correct form;
-2. learner's original form;
-3. distractor one;
-4. distractor two.
+1. the learner's original sentence;
+2. the corrected sentence;
+3. a plausible incorrect contextual variant;
+4. another plausible incorrect contextual variant.
 
-All four must be non-empty and unique after normalization. Distractors must be plausible incorrect forms of the same intended word/expression, in the same language, and different from the original and correct forms. Preserve spaces in expressions. Shuffle complete options only.
+All four must keep the same meaning and surrounding context, be non-empty, and be unique after normalization. Only the target correction should change. Shuffle complete options only.
 
-Never return the correct form, normalized correct form, or answer metadata from the session endpoint. Validate answers server-side against the canonical stored four-option set.
+Never return the correct option or answer metadata before an attempt. Validate answers server-side against the canonical stored four-option set.
+
+Legacy isolated-word distractors may be upgraded to context only when the original sentence contains the exact target and all four sentences can be reconstructed safely.
 
 ## Normalization and deduplication
 
@@ -52,15 +55,19 @@ Use the shared normalization helper:
 - trim edges;
 - collapse internal whitespace;
 - locale-aware lowercase;
-- preserve characters such as `æ`, `ø`, and `å`.
+- preserve language-specific characters.
 
 Keep original display values. Deduplicate training items by:
 
 ```text
-language + normalized original + normalized correct
+language + normalized original correction fragment + normalized correct correction fragment
 ```
 
-Different wrong forms for the same correct form may remain separate items.
+A duplicate item may refresh its contextual sentences without resetting statistics.
+
+## Languages and UI
+
+Supported languages are Danish (`da`), English (`en`), German (`de`), and Russian (`ru`). UI labels live in `apps/web/src/i18n.tsx`. Selecting a language changes both the writing language and interface language and is persisted locally.
 
 ## LLM handling
 

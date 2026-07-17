@@ -2,12 +2,32 @@ import { randomUUID } from 'node:crypto';
 import {
   normalizeTrainingText,
   type MistakeCategory,
+  type SupportedLanguage,
   type TrainingSessionResponse,
 } from '@grammar/shared';
 import { fromPrismaCategory } from '../domain/category.js';
 import { AppError } from '../domain/errors.js';
 import { canonicalOptions, shuffleOptions } from '../domain/training-validation.js';
 import type { RepositoryContext } from '../repositories/contracts.js';
+
+const contextPrompts: Record<SupportedLanguage, string> = {
+  da: 'Vælg den korrekte sætning',
+  en: 'Choose the correct sentence',
+  de: 'Wähle den richtigen Satz',
+  ru: 'Выбери правильное предложение',
+};
+
+const formPrompts: Record<SupportedLanguage, string> = {
+  da: 'Vælg den korrekte form',
+  en: 'Choose the correct form',
+  de: 'Wähle die richtige Form',
+  ru: 'Выбери правильную форму',
+};
+
+function promptFor(language: string, exerciseType: string): string {
+  const selected = (language in contextPrompts ? language : 'en') as SupportedLanguage;
+  return exerciseType === 'CONTEXT' ? contextPrompts[selected] : formPrompts[selected];
+}
 
 export class GetTrainingSessionService {
   constructor(private readonly context: RepositoryContext) {}
@@ -23,7 +43,8 @@ export class GetTrainingSessionService {
       items: items.map((item) => ({
         id: item.id,
         category: fromPrismaCategory(item.category) as MistakeCategory,
-        prompt: 'Vælg den korrekte form',
+        prompt: promptFor(item.language, item.exerciseType),
+        exerciseType: item.exerciseType === 'CONTEXT' ? 'context' : 'form',
         options: shuffleOptions(canonicalOptions(item)),
       })),
     };
@@ -51,7 +72,8 @@ export class AnswerTrainingItemService {
           400,
         );
       }
-      const wasCorrect = normalizedSelection === item.normalizedCorrect;
+      const wasCorrect =
+        normalizedSelection === normalizeTrainingText(item.correctForm, item.language);
       const updated = await repositories.trainingItems.recordAttempt({
         trainingItemId: item.id,
         selectedOption: input.selectedOption,
