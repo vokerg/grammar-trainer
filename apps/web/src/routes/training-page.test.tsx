@@ -15,13 +15,13 @@ function mockTrainingFetch(): void {
         const selected = JSON.parse(String(init?.body)) as { selectedOption: string };
         return new Response(
           JSON.stringify({
-            wasCorrect: selected.selectedOption === 'interessant',
-            correctAnswer: 'interessant',
+            wasCorrect: selected.selectedOption === 'Det var interessant.',
+            correctAnswer: 'Det var interessant.',
             selectedOption: selected.selectedOption,
             stats: {
               timesSeen: 1,
-              timesCorrect: selected.selectedOption === 'interessant' ? 1 : 0,
-              timesIncorrect: selected.selectedOption === 'interessant' ? 0 : 1,
+              timesCorrect: selected.selectedOption === 'Det var interessant.' ? 1 : 0,
+              timesIncorrect: selected.selectedOption === 'Det var interessant.' ? 0 : 1,
             },
           }),
           { status: 200, headers: { 'content-type': 'application/json' } },
@@ -47,8 +47,14 @@ function mockTrainingFetch(): void {
             {
               id: 'item-1',
               category: 'spelling',
-              prompt: 'Vælg den korrekte form',
-              options: ['interesant', 'interessant', 'interressant', 'intressant'],
+              prompt: 'Vælg den korrekte sætning',
+              exerciseType: 'context',
+              options: [
+                'Det var interesant.',
+                'Det var interessant.',
+                'Det var interressant.',
+                'Det var intressant.',
+              ],
             },
           ],
         }),
@@ -63,15 +69,17 @@ describe('TrainingPage', () => {
     mockTrainingFetch();
     const user = userEvent.setup();
     renderWithProviders(<TrainingPage />);
-    await user.click(await screen.findByRole('button', { name: 'Svar 2: interessant' }));
+    await user.click(
+      await screen.findByRole('button', { name: 'Svar 2: Det var interessant.' }),
+    );
     expect(await screen.findByText(/Ja — godt set/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Næste ord' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Næste øvelse' })).toBeEnabled();
   });
 
   it('supports number-key selection', async () => {
     mockTrainingFetch();
     renderWithProviders(<TrainingPage />);
-    await screen.findByRole('button', { name: 'Svar 1: interesant' });
+    await screen.findByRole('button', { name: 'Svar 1: Det var interesant.' });
     fireEvent.keyDown(window, { key: '1' });
     expect(await screen.findByText(/Godt forsøgt/)).toBeInTheDocument();
   });
