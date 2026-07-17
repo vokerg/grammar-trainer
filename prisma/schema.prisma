@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum AnalysisStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum MistakeCategory {
+  SPELLING
+  GRAMMAR
+  WORD_CHOICE
+  EXPRESSION
+  CAPITALIZATION
+  PUNCTUATION
+  OTHER
+}
+
+model Submission {
+  id        String     @id @default(cuid())
+  text      String
+  language  String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  analyses  Analysis[]
+}
+
+model Analysis {
+  id               String         @id @default(cuid())
+  submissionId     String
+  status           AnalysisStatus @default(PENDING)
+  detectedLanguage String?
+  overallFeedback  String?
+  correctedText    String?
+  styleFeedback    String?
+  provider         String?
+  model            String?
+  rawResponse      String?
+  errorMessage     String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  submission       Submission     @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  mistakes         Mistake[]
+
+  @@index([submissionId, createdAt])
+}
+
+model Mistake {
+  id                 String            @id @default(cuid())
+  analysisId         String
+  trainingItemId     String?
+  original           String
+  correct            String
+  normalizedOriginal String
+  normalizedCorrect  String
+  explanation        String
+  category           MistakeCategory
+  originalSentence   String?
+  distractorOne      String?
+  distractorTwo      String?
+  trainable          Boolean           @default(false)
+  createdAt          DateTime          @default(now())
+  analysis           Analysis          @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  trainingItem       TrainingItem?     @relation(fields: [trainingItemId], references: [id], onDelete: SetNull)
+
+  @@index([analysisId])
+  @@index([trainingItemId])
+}
+
+model TrainingItem {
+  id                 String            @id @default(cuid())
+  language           String
+  category           MistakeCategory
+  originalForm       String
+  correctForm        String
+  normalizedOriginal String
+  normalizedCorrect  String
+  distractorOne      String
+  distractorTwo      String
+  timesSeen          Int               @default(0)
+  timesCorrect       Int               @default(0)
+  timesIncorrect     Int               @default(0)
+  lastPracticedAt    DateTime?
+  nextPracticeAt     DateTime?
+  active             Boolean           @default(true)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  mistakes           Mistake[]
+  attempts           TrainingAttempt[]
+
+  @@unique([language, normalizedOriginal, normalizedCorrect])
+  @@index([language, active])
+  @@index([nextPracticeAt])
+  @@index([normalizedCorrect])
+}
+
+model TrainingAttempt {
+  id             String       @id @default(cuid())
+  trainingItemId String
+  selectedOption String
+  wasCorrect     Boolean
+  createdAt      DateTime     @default(now())
+  trainingItem   TrainingItem @relation(fields: [trainingItemId], references: [id], onDelete: Cascade)
+
+  @@index([trainingItemId, createdAt])
+}

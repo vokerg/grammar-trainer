@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, 'agent/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: file:./ci.db
+      NODE_ENV: test
+      LLM_PROVIDER: mock
+      MOCK_LLM_MODE: success
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
+      - name: Apply database schema
+        run: pnpm db:push
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Build all packages
+        id: build
+        run: |
+          set +e
+          pnpm -r build 2>&1 | tee build.log
+          code=${PIPESTATUS[0]}
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Lint
+        id: lint
+        run: |
+          set +e
+          pnpm -r lint 2>&1 | tee lint.log
+          code=${PIPESTATUS[0]}
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Typecheck
+        id: typecheck
+        run: |
+          set +e
+          pnpm -r typecheck 2>&1 | tee typecheck.log
+          code=${PIPESTATUS[0]}
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Test
+        id: test
+        run: |
+          set +e
+          pnpm -r test 2>&1 | tee test.log
+          code=${PIPESTATUS[0]}
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload validation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grammar-trainer-validation-logs
+          path: '*.log'
+          if-no-files-found: error
+
+      - name: Enforce quality gate
+        if: always()
+        env:
+          BUILD_EXIT: ${{ steps.build.outputs.exit_code }}
+          LINT_EXIT: ${{ steps.lint.outputs.exit_code }}
+          TYPECHECK_EXIT: ${{ steps.typecheck.outputs.exit_code }}
+          TEST_EXIT: ${{ steps.test.outputs.exit_code }}
+        run: |
+          printf 'build=%s\nlint=%s\ntypecheck=%s\ntest=%s\n' \
+            "$BUILD_EXIT" "$LINT_EXIT" "$TYPECHECK_EXIT" "$TEST_EXIT"
+          test "$BUILD_EXIT" = 0
+          test "$LINT_EXIT" = 0
+          test "$TYPECHECK_EXIT" = 0
+          test "$TEST_EXIT" = 0
+
+      - name: Upload production builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: grammar-trainer-builds
+          path: |
+            apps/api/dist
+            apps/web/dist
+            packages/*/dist
+          if-no-files-found: error

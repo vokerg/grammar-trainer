@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.local
+apps/web/.env.local
+prisma/*.db
+prisma/*.db-journal
+.DS_Store
