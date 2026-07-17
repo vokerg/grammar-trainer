@@ -71,7 +71,7 @@ class PrismaAnalysisRepository implements AnalysisRepository {
         detectedLanguage: input.detectedLanguage,
         overallFeedback: input.overallFeedback,
         correctedText: input.correctedText,
-        styleFeedback: input.styleFeedback,
+        styleFeedback: JSON.stringify(input.styleFeedback),
         provider: input.provider,
         model: input.model,
         ...(input.rawResponse === undefined ? {} : { rawResponse: input.rawResponse }),

@@ -13,7 +13,7 @@ CREATE TABLE "Analysis" (
   "detectedLanguage" TEXT,
   "overallFeedback" TEXT,
   "correctedText" TEXT,
-  "styleFeedback" JSONB,
+  "styleFeedback" TEXT,
   "provider" TEXT,
   "model" TEXT,
   "rawResponse" TEXT,

@@ -4,6 +4,18 @@ import { fromPrismaCategory } from '../domain/category.js';
 import { AppError } from '../domain/errors.js';
 import type { RepositoryContext } from '../repositories/contracts.js';
 
+function parseStyleFeedback(value: string | null): string[] {
+  if (value === null) return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === 'string')
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 function mapAnalysis(
   submissionId: string,
   analysis: Analysis & { mistakes: Mistake[] },
@@ -19,9 +31,7 @@ function mapAnalysis(
     analysis: {
       detectedLanguage: analysis.detectedLanguage ?? '',
       overallFeedback: analysis.overallFeedback ?? '',
-      styleFeedback: Array.isArray(analysis.styleFeedback)
-        ? analysis.styleFeedback.filter((value): value is string => typeof value === 'string')
-        : [],
+      styleFeedback: parseStyleFeedback(analysis.styleFeedback),
       correctedText: analysis.correctedText ?? '',
       mistakes: analysis.mistakes.map((mistake) => ({
         id: mistake.id,

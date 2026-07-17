@@ -39,7 +39,7 @@ model Analysis {
   detectedLanguage String?
   overallFeedback  String?
   correctedText    String?
-  styleFeedback    Json?
+  styleFeedback    String?
   provider         String?
   model            String?
   rawResponse      String?
