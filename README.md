@@ -27,6 +27,13 @@ prisma          SQLite schema and migrations
 
 The API route handlers depend on application services. Services use repository interfaces through a Prisma-backed repository context, and the LLM layer has no database dependency. This keeps PostgreSQL and additional model providers practical future changes.
 
+## Coding-agent documentation
+
+- [`AGENTS.md`](AGENTS.md): entry point for coding agents.
+- [Copilot instructions](.github/copilot-instructions.md): mandatory implementation rules.
+- [Architecture guide](docs/architecture.md): flows, boundaries, and extension recipes.
+- [Domain rules](docs/domain-rules.md): training, normalization, privacy, and LLM invariants.
+
 ## Requirements
 
 - Node.js 22 or newer
