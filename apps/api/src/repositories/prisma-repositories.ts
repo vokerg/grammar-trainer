@@ -133,6 +133,7 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
     const items = await this.db.trainingItem.findMany({
       where: {
         active: true,
+        exerciseType: 'CONTEXT',
         category: { not: 'CAPITALIZATION' },
         ...(input.language === undefined ? {} : { language: input.language }),
         OR: [{ nextPracticeAt: null }, { nextPracticeAt: { lte: input.now } }],
@@ -227,18 +228,22 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
 
   async getStats(language?: string) {
     const where = language === undefined ? {} : { language };
+    const contextualWhere = {
+      ...where,
+      exerciseType: 'CONTEXT',
+      category: { not: 'CAPITALIZATION' as const },
+    };
     const [activeItems, attempts, recentlyPractised] = await Promise.all([
       this.db.trainingItem.count({
-        where: { ...where, active: true, category: { not: 'CAPITALIZATION' } },
+        where: { ...contextualWhere, active: true },
       }),
       this.db.trainingAttempt.findMany({
-        where: language === undefined ? {} : { trainingItem: { language } },
+        where: { trainingItem: contextualWhere },
         select: { wasCorrect: true },
       }),
       this.db.trainingItem.count({
         where: {
-          ...where,
-          category: { not: 'CAPITALIZATION' },
+          ...contextualWhere,
           lastPracticedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
         },
       }),
