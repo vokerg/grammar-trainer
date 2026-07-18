@@ -29,8 +29,7 @@ The API route handlers depend on application services. Services use repository i
 
 ## Coding-agent documentation
 
-- [`AGENTS.md`](AGENTS.md): entry point for coding agents.
-- [Copilot instructions](.github/copilot-instructions.md): mandatory implementation rules.
+- [`AGENTS.md`](AGENTS.md): canonical repository guidelines for coding agents.
 - [Architecture guide](docs/architecture.md): flows, boundaries, and extension recipes.
 - [Domain rules](docs/domain-rules.md): training, normalization, privacy, and LLM invariants.
 
