@@ -23,6 +23,9 @@ export async function apiRequest<T>(
     ...init,
     headers: { 'content-type': 'application/json', ...init?.headers },
   });
+  if (response.status === 204) {
+    return schema.parse(undefined);
+  }
   const body: unknown = await response.json();
   if (!response.ok) {
     const parsed = ApiErrorSchema.safeParse(body);

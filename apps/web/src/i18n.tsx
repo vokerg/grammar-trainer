@@ -337,6 +337,59 @@ const dictionaries: Record<SupportedLanguage, Record<string, string>> = {
   },
 };
 
+Object.assign(dictionaries.da, {
+  'nav.vocabulary': 'Ord',
+  'vocabulary.eyebrow': 'Din oefbank',
+  'vocabulary.title': 'Dine ord',
+  'vocabulary.intro':
+    'Her er alle rettelser, som kan bruges i traeningen. Fjern dem, hvis de indeholder en tastefejl.',
+  'vocabulary.loading': 'Henter dine ord...',
+  'vocabulary.loadError': 'Ordene kunne ikke hentes.',
+  'vocabulary.empty': 'Du har ingen ord at oefve endnu.',
+  'vocabulary.remove': 'Fjern',
+  'vocabulary.removeError': 'Ordet kunne ikke fjernes.',
+  'vocabulary.practised': '{correct} af {total} rigtige',
+});
+Object.assign(dictionaries.en, {
+  'nav.vocabulary': 'Words',
+  'vocabulary.eyebrow': 'Your practice pool',
+  'vocabulary.title': 'Your words',
+  'vocabulary.intro':
+    'These are all corrections available for training. Remove one if it contains a typo.',
+  'vocabulary.loading': 'Loading your words...',
+  'vocabulary.loadError': 'Your words could not be loaded.',
+  'vocabulary.empty': 'You do not have any words to practise yet.',
+  'vocabulary.remove': 'Remove',
+  'vocabulary.removeError': 'The word could not be removed.',
+  'vocabulary.practised': '{correct} of {total} correct',
+});
+Object.assign(dictionaries.de, {
+  'nav.vocabulary': 'Worter',
+  'vocabulary.eyebrow': 'Dein Ubungsvorrat',
+  'vocabulary.title': 'Deine Worter',
+  'vocabulary.intro':
+    'Diese Korrekturen stehen fur Ubungen bereit. Entferne einen Eintrag bei einem Tippfehler.',
+  'vocabulary.loading': 'Deine Worter werden geladen...',
+  'vocabulary.loadError': 'Deine Worter konnten nicht geladen werden.',
+  'vocabulary.empty': 'Du hast noch keine Worter zum Uben.',
+  'vocabulary.remove': 'Entfernen',
+  'vocabulary.removeError': 'Das Wort konnte nicht entfernt werden.',
+  'vocabulary.practised': '{correct} von {total} richtig',
+});
+Object.assign(dictionaries.ru, {
+  'nav.vocabulary': 'Slova',
+  'vocabulary.eyebrow': 'Tvoi zadaniya',
+  'vocabulary.title': 'Tvoi slova',
+  'vocabulary.intro':
+    'Zdes vse ispravleniya dlya trenirovki. Udali zapis, esli v nem est opechatka.',
+  'vocabulary.loading': 'Zagruzhaem slova...',
+  'vocabulary.loadError': 'Ne udalos zagruzit slova.',
+  'vocabulary.empty': 'Poka net slov dlya trenirovki.',
+  'vocabulary.remove': 'Udalit',
+  'vocabulary.removeError': 'Ne udalos udalit slovo.',
+  'vocabulary.practised': '{correct} iz {total} pravilno',
+});
+
 export const languageNames: Record<SupportedLanguage, string> = {
   da: 'Dansk',
   en: 'English',

@@ -17,6 +17,8 @@ import {
   AnswerTrainingItemService,
   GetTrainingSessionService,
   GetTrainingStatsService,
+  GetVocabularyService,
+  DeleteVocabularyItemService,
 } from './services/training.service.js';
 
 export type BuildAppOptions = {
@@ -40,6 +42,8 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     session: new GetTrainingSessionService(context),
     answer: new AnswerTrainingItemService(context),
     stats: new GetTrainingStatsService(context),
+    vocabulary: new GetVocabularyService(context),
+    deleteVocabularyItem: new DeleteVocabularyItemService(context),
   };
   const app = Fastify({
     logger: env.NODE_ENV !== 'test' ? { level: env.LOG_LEVEL } : false,

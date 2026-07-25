@@ -641,6 +641,55 @@ textarea:focus {
   gap: 0.75rem;
 }
 
+.vocabulary-list {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+}
+
+.vocabulary-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid #e8e3fa;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.vocabulary-item p {
+  margin: 0.45rem 0;
+}
+
+.vocabulary-original {
+  color: #8a6470;
+  text-decoration: line-through;
+}
+.vocabulary-correct {
+  color: #287044;
+  font-weight: 800;
+}
+.vocabulary-item small {
+  color: #716b88;
+}
+
+.remove-button {
+  flex: none;
+  border: 1px solid #bd5062;
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  background: #fff;
+  color: #9f3047;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.remove-button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
 .history-item {
   display: grid;
   gap: 0.4rem;
@@ -744,6 +793,11 @@ textarea:focus {
   .option-button {
     grid-template-columns: 32px 1fr;
     padding: 0.85rem;
+  }
+
+  .vocabulary-item {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 

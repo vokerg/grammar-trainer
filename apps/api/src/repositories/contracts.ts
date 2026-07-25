@@ -1,4 +1,4 @@
-import type { Analysis, Mistake, Submission, TrainingItem } from '@prisma/client';
+import type { Analysis, Mistake, Submission, TrainingItem, VocabularyEntry } from '@prisma/client';
 import type { SanitizedMistake } from '../domain/training-validation.js';
 
 export interface SubmissionRepository {
@@ -38,11 +38,12 @@ export interface MistakeRepository {
 }
 
 export interface TrainingItemRepository {
-  findNextItems(input: { language?: string; limit: number; now: Date }): Promise<TrainingItem[]>;
+  findSessionItems(input: { language?: string; submissionId?: string }): Promise<TrainingItem[]>;
   findById(id: string): Promise<TrainingItem | null>;
   createOrMergeFromMistake(input: {
     language: string;
     mistake: SanitizedMistake;
+    vocabularyEntryId: string;
   }): Promise<{ item: TrainingItem; created: boolean }>;
   recordAttempt(input: {
     trainingItemId: string;
@@ -59,11 +60,22 @@ export interface TrainingItemRepository {
   }>;
 }
 
+export interface VocabularyRepository {
+  createOrFindFromMistake(input: {
+    language: string;
+    mistake: SanitizedMistake;
+  }): Promise<VocabularyEntry>;
+  list(input: { language?: string }): Promise<VocabularyEntry[]>;
+  deactivate(id: string): Promise<void>;
+  findById(id: string): Promise<VocabularyEntry | null>;
+}
+
 export type RepositoryBundle = {
   submissions: SubmissionRepository;
   analyses: AnalysisRepository;
   mistakes: MistakeRepository;
   trainingItems: TrainingItemRepository;
+  vocabulary: VocabularyRepository;
 };
 
 export interface RepositoryContext {

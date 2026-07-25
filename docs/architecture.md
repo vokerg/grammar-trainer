@@ -46,6 +46,14 @@ POST answer
 
 ## Common extensions
 
+## Vocabulary pool
+
+Every saved mistake is placed in a separate vocabulary pool, including mistakes
+without enough context for a four-option exercise. Training items retain their own
+attempts and schedules; they are only eligible while their matching pool entry is
+active. Removing a pool entry excludes it from future training without deleting the
+underlying exercise or its history.
+
 ### Add a language
 
 Update shared supported-language constants and locale mapping, then add UI labels/tests. Do not add language-specific normalization outside the shared helper.

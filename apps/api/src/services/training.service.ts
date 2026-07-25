@@ -4,6 +4,7 @@ import {
   type MistakeCategory,
   type SupportedLanguage,
   type TrainingSessionResponse,
+  type VocabularyResponse,
 } from '@grammar/shared';
 import { fromPrismaCategory } from '../domain/category.js';
 import { AppError } from '../domain/errors.js';
@@ -32,11 +33,13 @@ function promptFor(language: string, exerciseType: string): string {
 export class GetTrainingSessionService {
   constructor(private readonly context: RepositoryContext) {}
 
-  async execute(input: { limit: number; language?: string }): Promise<TrainingSessionResponse> {
-    const items = await this.context.repositories.trainingItems.findNextItems({
-      limit: input.limit,
-      now: new Date(),
+  async execute(input: {
+    language?: string;
+    submissionId?: string;
+  }): Promise<TrainingSessionResponse> {
+    const items = await this.context.repositories.trainingItems.findSessionItems({
       ...(input.language === undefined ? {} : { language: input.language }),
+      ...(input.submissionId === undefined ? {} : { submissionId: input.submissionId }),
     });
     return {
       sessionId: randomUUID(),
@@ -103,5 +106,38 @@ export class GetTrainingStatsService {
       ...stats,
       accuracy: stats.totalAttempts === 0 ? 0 : stats.correctAttempts / stats.totalAttempts,
     };
+  }
+}
+
+export class GetVocabularyService {
+  constructor(private readonly context: RepositoryContext) {}
+
+  async execute(language?: string): Promise<VocabularyResponse> {
+    const items = await this.context.repositories.vocabulary.list({
+      ...(language === undefined ? {} : { language }),
+    });
+    return {
+      items: items.map((item) => ({
+        id: item.id,
+        category: fromPrismaCategory(item.category) as MistakeCategory,
+        original: item.original,
+        correct: item.correct,
+        timesSeen: 0,
+        timesCorrect: 0,
+        createdAt: item.createdAt.toISOString(),
+      })),
+    };
+  }
+}
+
+export class DeleteVocabularyItemService {
+  constructor(private readonly context: RepositoryContext) {}
+
+  async execute(trainingItemId: string): Promise<void> {
+    const item = await this.context.repositories.vocabulary.findById(trainingItemId);
+    if (item === null) {
+      throw new AppError('TRAINING_ITEM_NOT_FOUND', 'Training item not found.', 404);
+    }
+    await this.context.repositories.vocabulary.deactivate(trainingItemId);
   }
 }

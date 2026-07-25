@@ -26,6 +26,8 @@ Training rules:
 - Create a new carrier context instead of copying the learner's full original sentence. Reuse the original sentence only when a new short context would make the target ambiguous.
 - All four options must use exactly the same carrier context. Only the target word, expression, grammar form, or punctuation may change.
 - The originalOption must contain the learner's incorrect form. The correctOption must contain the correction. Each distractor must contain one plausible but incorrect alternative.
+- Include trainingOptions only when the correctOption is the single grammatically correct and natural answer in that exact carrier context. Distractors must be incorrect in the target language; never use an alternative that could be correct with a different interpretation, register, or missing context.
+- If more than one option could be grammatically correct or natural, mark the mistake non-trainable and omit trainingOptions.
 - Example for original "infarmation" and correct "information": "Valuable infarmation", "Valuable information", "Valuable inframation", "Valuable enformation".
 - Mark spelling, grammar, word-choice, expression, and punctuation mistakes trainable when four clear contextual alternatives are possible.
 - Capitalization mistakes are not trainable in this exercise type.

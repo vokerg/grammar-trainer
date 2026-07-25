@@ -1,0 +1,2 @@
+$ pnpm build && pnpm --parallel --filter @grammar/api --filter @grammar/web dev
+$ pnpm -r build

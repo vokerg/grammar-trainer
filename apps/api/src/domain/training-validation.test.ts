@@ -45,12 +45,27 @@ describe('training validation', () => {
         trainingOptions: {
           originalOption: 'Hej Peter, kom her.',
           correctOption: 'Hej, Peter, kom her.',
-          distractors: ['Hej Peter kom, her.', 'Hej; Peter, kom her.'],
+          distractors: ['Hej Peter!, kom her.', 'Hej Peter?, kom her.'],
         },
       },
       'da',
     );
     expect(result.trainable).toBe(true);
+  });
+
+  it('downgrades options when the carrier context changes', () => {
+    const result = sanitizeMistake(
+      {
+        ...baseMistake,
+        trainingOptions: {
+          ...baseMistake.trainingOptions,
+          distractors: ['I går var det interressant.', 'Det var intressant.'],
+        },
+      },
+      'da',
+    );
+    expect(result.trainable).toBe(false);
+    expect(result.trainingReason).toBe('invalid-options');
   });
 
   it('excludes capitalization from this exercise type', () => {
