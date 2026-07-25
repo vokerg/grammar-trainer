@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { answerTrainingItem, getTrainingSession, getTrainingStats } from '../api/training.js';
 import { ErrorMessage } from '../components/error-message.js';
 import { LoadingState } from '../components/loading-state.js';
@@ -9,9 +10,11 @@ import { useI18n } from '../i18n.js';
 
 export function TrainingPage() {
   const { language, t } = useI18n();
+  const [searchParams] = useSearchParams();
+  const submissionId = searchParams.get('submissionId') ?? undefined;
   const session = useQuery({
-    queryKey: ['training-session', language],
-    queryFn: () => getTrainingSession(language),
+    queryKey: ['training-session', language, submissionId],
+    queryFn: () => getTrainingSession(language, submissionId),
   });
   const stats = useQuery({
     queryKey: ['training-stats', language],
@@ -34,7 +37,7 @@ export function TrainingPage() {
     setSelected(null);
     setCorrectAnswer(null);
     setCorrectCount(0);
-  }, [language]);
+  }, [language, submissionId]);
   const current = session.data?.items[index];
   const selectOption = useCallback(
     (optionIndex: number) => {

@@ -112,7 +112,7 @@ export function ResultPage() {
         )}
       </section>
       <div className="action-row">
-        <Link className="primary-button" to="/training">
+        <Link className="primary-button" to={`/training?submissionId=${encodeURIComponent(id)}`}>
           {t('result.startTraining')}
         </Link>
         <Link className="secondary-button" to="/">

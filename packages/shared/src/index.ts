@@ -150,6 +150,21 @@ export const TrainingStatsResponseSchema = z.object({
 });
 export type TrainingStatsResponse = z.infer<typeof TrainingStatsResponseSchema>;
 
+export const VocabularyItemSchema = z.object({
+  id: z.string(),
+  category: MistakeCategorySchema,
+  original: z.string(),
+  correct: z.string(),
+  timesSeen: z.number().int().nonnegative(),
+  timesCorrect: z.number().int().nonnegative(),
+  createdAt: z.string(),
+});
+export const VocabularyResponseSchema = z.object({
+  items: z.array(VocabularyItemSchema),
+});
+export type VocabularyItem = z.infer<typeof VocabularyItemSchema>;
+export type VocabularyResponse = z.infer<typeof VocabularyResponseSchema>;
+
 export const PublicConfigResponseSchema = z.object({
   llmProvider: z.string(),
   llmModel: z.string(),

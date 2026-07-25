@@ -94,15 +94,35 @@ model TrainingItem {
   lastPracticedAt    DateTime?
   nextPracticeAt     DateTime?
   active             Boolean           @default(true)
+  vocabularyEntryId  String?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   mistakes           Mistake[]
   attempts           TrainingAttempt[]
+  vocabularyEntry    VocabularyEntry?  @relation(fields: [vocabularyEntryId], references: [id])
 
   @@unique([language, normalizedOriginal, normalizedCorrect])
   @@index([language, active])
   @@index([nextPracticeAt])
   @@index([normalizedCorrect])
+  @@index([vocabularyEntryId])
+}
+
+model VocabularyEntry {
+  id                 String            @id @default(cuid())
+  language           String
+  category           MistakeCategory
+  original           String
+  correct            String
+  normalizedOriginal String
+  normalizedCorrect  String
+  active             Boolean           @default(true)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  trainingItems      TrainingItem[]
+
+  @@unique([language, normalizedOriginal, normalizedCorrect])
+  @@index([language, active])
 }
 
 model TrainingAttempt {

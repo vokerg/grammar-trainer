@@ -51,11 +51,16 @@ export class AnalyzeSubmissionService {
             language: submission.language,
             mistake,
           });
+          const vocabularyEntry = await repositories.vocabulary.createOrFindFromMistake({
+            language: submission.language,
+            mistake,
+          });
           let addedToTraining = false;
           if (mistake.trainable) {
             const training = await repositories.trainingItems.createOrMergeFromMistake({
               language: submission.language,
               mistake,
+              vocabularyEntryId: vocabularyEntry.id,
             });
             await repositories.mistakes.attachTrainingItem(savedMistake.id, training.item.id);
             trainingItemsCreated += training.created ? 1 : 0;

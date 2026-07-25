@@ -4,6 +4,7 @@ import { HistoryPage } from './routes/history-page.js';
 import { ResultPage } from './routes/result-page.js';
 import { TrainingPage } from './routes/training-page.js';
 import { WritePage } from './routes/write-page.js';
+import { VocabularyPage } from './routes/vocabulary-page.js';
 
 export function App() {
   return (
@@ -12,6 +13,7 @@ export function App() {
         <Route path="/" element={<WritePage />} />
         <Route path="/result/:id" element={<ResultPage />} />
         <Route path="/training" element={<TrainingPage />} />
+        <Route path="/vocabulary" element={<VocabularyPage />} />
         <Route path="/history" element={<HistoryPage />} />
       </Route>
     </Routes>

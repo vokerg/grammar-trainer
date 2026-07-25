@@ -20,6 +20,7 @@ export function AppShell() {
           <nav aria-label={t('nav.main')}>
             <NavLink to="/">{t('nav.write')}</NavLink>
             <NavLink to="/training">{t('nav.training')}</NavLink>
+            <NavLink to="/vocabulary">{t('nav.vocabulary')}</NavLink>
             <NavLink to="/history">{t('nav.history')}</NavLink>
           </nav>
           <label className="language-switcher">

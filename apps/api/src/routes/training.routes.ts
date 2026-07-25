@@ -5,11 +5,13 @@ import type {
   AnswerTrainingItemService,
   GetTrainingSessionService,
   GetTrainingStatsService,
+  GetVocabularyService,
+  DeleteVocabularyItemService,
 } from '../services/training.service.js';
 
 const SessionQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(50).default(10),
   language: SupportedLanguageSchema.optional(),
+  submissionId: z.string().min(1).optional(),
 });
 const AnswerParamsSchema = z.object({ trainingItemId: z.string().min(1) });
 const StatsQuerySchema = z.object({ language: SupportedLanguageSchema.optional() });
@@ -20,13 +22,15 @@ export function registerTrainingRoutes(
     session: GetTrainingSessionService;
     answer: AnswerTrainingItemService;
     stats: GetTrainingStatsService;
+    vocabulary: GetVocabularyService;
+    deleteVocabularyItem: DeleteVocabularyItemService;
   },
 ): void {
   app.get('/api/training/session', async (request) => {
     const query = SessionQuerySchema.parse(request.query);
     return services.session.execute({
-      limit: query.limit,
       ...(query.language === undefined ? {} : { language: query.language }),
+      ...(query.submissionId === undefined ? {} : { submissionId: query.submissionId }),
     });
   });
 
@@ -39,5 +43,16 @@ export function registerTrainingRoutes(
   app.get('/api/training/stats', async (request) => {
     const query = StatsQuerySchema.parse(request.query);
     return services.stats.execute(query.language);
+  });
+
+  app.get('/api/vocabulary', async (request) => {
+    const query = StatsQuerySchema.parse(request.query);
+    return services.vocabulary.execute(query.language);
+  });
+
+  app.delete('/api/vocabulary/:trainingItemId', async (request, reply) => {
+    const { trainingItemId } = AnswerParamsSchema.parse(request.params);
+    await services.deleteVocabularyItem.execute(trainingItemId);
+    return reply.code(204).send();
   });
 }

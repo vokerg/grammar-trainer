@@ -179,6 +179,8 @@ POST   /api/submissions/:submissionId/analyze
 GET    /api/training/session
 POST   /api/training/items/:trainingItemId/answer
 GET    /api/training/stats
+GET    /api/vocabulary
+DELETE /api/vocabulary/:vocabularyEntryId
 ```
 
 ## Privacy notes

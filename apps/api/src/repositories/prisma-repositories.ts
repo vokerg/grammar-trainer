@@ -5,6 +5,7 @@ import type {
   Mistake,
   Submission,
   TrainingItem,
+  VocabularyEntry,
 } from '@prisma/client';
 import { toPrismaCategory } from '../domain/category.js';
 import type { SanitizedMistake } from '../domain/training-validation.js';
@@ -15,6 +16,7 @@ import type {
   RepositoryContext,
   SubmissionRepository,
   TrainingItemRepository,
+  VocabularyRepository,
 } from './contracts.js';
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
@@ -125,10 +127,9 @@ class PrismaMistakeRepository implements MistakeRepository {
 class PrismaTrainingItemRepository implements TrainingItemRepository {
   constructor(private readonly db: DbClient) {}
 
-  async findNextItems(input: {
+  async findSessionItems(input: {
     language?: string;
-    limit: number;
-    now: Date;
+    submissionId?: string;
   }): Promise<TrainingItem[]> {
     const items = await this.db.trainingItem.findMany({
       where: {
@@ -136,20 +137,20 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
         exerciseType: 'CONTEXT',
         category: { not: 'CAPITALIZATION' },
         ...(input.language === undefined ? {} : { language: input.language }),
-        OR: [{ nextPracticeAt: null }, { nextPracticeAt: { lte: input.now } }],
+        OR: [{ vocabularyEntry: { active: true } }, { vocabularyEntryId: null }],
+        ...(input.submissionId === undefined
+          ? {}
+          : { mistakes: { some: { analysis: { submissionId: input.submissionId } } } }),
       },
-      take: Math.max(input.limit * 4, input.limit),
     });
-    return items
-      .sort((left, right) => {
-        if (left.timesSeen === 0 && right.timesSeen !== 0) return -1;
-        if (right.timesSeen === 0 && left.timesSeen !== 0) return 1;
-        const leftAccuracy = left.timesSeen === 0 ? 0 : left.timesCorrect / left.timesSeen;
-        const rightAccuracy = right.timesSeen === 0 ? 0 : right.timesCorrect / right.timesSeen;
-        if (leftAccuracy !== rightAccuracy) return leftAccuracy - rightAccuracy;
-        return (left.lastPracticedAt?.getTime() ?? 0) - (right.lastPracticedAt?.getTime() ?? 0);
-      })
-      .slice(0, input.limit);
+    return items.sort((left, right) => {
+      if (left.timesSeen === 0 && right.timesSeen !== 0) return -1;
+      if (right.timesSeen === 0 && left.timesSeen !== 0) return 1;
+      const leftAccuracy = left.timesSeen === 0 ? 0 : left.timesCorrect / left.timesSeen;
+      const rightAccuracy = right.timesSeen === 0 ? 0 : right.timesCorrect / right.timesSeen;
+      if (leftAccuracy !== rightAccuracy) return leftAccuracy - rightAccuracy;
+      return (left.lastPracticedAt?.getTime() ?? 0) - (right.lastPracticedAt?.getTime() ?? 0);
+    });
   }
 
   findById(id: string): Promise<TrainingItem | null> {
@@ -159,6 +160,7 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
   async createOrMergeFromMistake(input: {
     language: string;
     mistake: SanitizedMistake;
+    vocabularyEntryId: string;
   }): Promise<{ item: TrainingItem; created: boolean }> {
     const training = input.mistake.trainingOptions;
     if (!input.mistake.trainable || training === undefined) {
@@ -183,7 +185,7 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
     if (existing !== null) {
       const item = await this.db.trainingItem.update({
         where: { id: existing.id },
-        data: { active: true, ...exerciseData },
+        data: { active: true, vocabularyEntryId: input.vocabularyEntryId, ...exerciseData },
       });
       return { item, created: false };
     }
@@ -193,6 +195,7 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
         ...exerciseData,
         normalizedOriginal: input.mistake.normalizedOriginal,
         normalizedCorrect: input.mistake.normalizedCorrect,
+        vocabularyEntryId: input.vocabularyEntryId,
       },
     });
     return { item, created: true };
@@ -228,22 +231,23 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
 
   async getStats(language?: string) {
     const where = language === undefined ? {} : { language };
-    const contextualWhere = {
+    const activeTrainingWhere = {
       ...where,
       exerciseType: 'CONTEXT',
       category: { not: 'CAPITALIZATION' as const },
+      OR: [{ vocabularyEntry: { active: true } }, { vocabularyEntryId: null }],
     };
     const [activeItems, attempts, recentlyPractised] = await Promise.all([
       this.db.trainingItem.count({
-        where: { ...contextualWhere, active: true },
+        where: { ...activeTrainingWhere, active: true },
       }),
       this.db.trainingAttempt.findMany({
-        where: { trainingItem: contextualWhere },
+        where: { trainingItem: activeTrainingWhere },
         select: { wasCorrect: true },
       }),
       this.db.trainingItem.count({
         where: {
-          ...contextualWhere,
+          ...activeTrainingWhere,
           lastPracticedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
         },
       }),
@@ -259,12 +263,60 @@ class PrismaTrainingItemRepository implements TrainingItemRepository {
   }
 }
 
+class PrismaVocabularyRepository implements VocabularyRepository {
+  constructor(private readonly db: DbClient) {}
+
+  createOrFindFromMistake(input: {
+    language: string;
+    mistake: SanitizedMistake;
+  }): Promise<VocabularyEntry> {
+    const key = {
+      language_normalizedOriginal_normalizedCorrect: {
+        language: input.language,
+        normalizedOriginal: input.mistake.normalizedOriginal,
+        normalizedCorrect: input.mistake.normalizedCorrect,
+      },
+    };
+    return this.db.vocabularyEntry.upsert({
+      where: key,
+      update: { active: true },
+      create: {
+        language: input.language,
+        category: toPrismaCategory(input.mistake.category),
+        original: input.mistake.original,
+        correct: input.mistake.correct,
+        normalizedOriginal: input.mistake.normalizedOriginal,
+        normalizedCorrect: input.mistake.normalizedCorrect,
+      },
+    });
+  }
+
+  list(input: { language?: string }): Promise<VocabularyEntry[]> {
+    return this.db.vocabularyEntry.findMany({
+      where: {
+        active: true,
+        ...(input.language === undefined ? {} : { language: input.language }),
+      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    });
+  }
+
+  findById(id: string): Promise<VocabularyEntry | null> {
+    return this.db.vocabularyEntry.findUnique({ where: { id } });
+  }
+
+  async deactivate(id: string): Promise<void> {
+    await this.db.vocabularyEntry.update({ where: { id }, data: { active: false } });
+  }
+}
+
 function createBundle(db: DbClient): RepositoryBundle {
   return {
     submissions: new PrismaSubmissionRepository(db),
     analyses: new PrismaAnalysisRepository(db),
     mistakes: new PrismaMistakeRepository(db),
     trainingItems: new PrismaTrainingItemRepository(db),
+    vocabulary: new PrismaVocabularyRepository(db),
   };
 }
 

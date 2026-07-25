@@ -81,4 +81,14 @@ describe('TrainingPage', () => {
     fireEvent.keyDown(window, { key: '1' });
     expect(await screen.findByText(/Godt forsøgt/)).toBeInTheDocument();
   });
+
+  it('requests a session scoped to the result submission when supplied in the URL', async () => {
+    mockTrainingFetch();
+    renderWithProviders(<TrainingPage />, ['/training?submissionId=submission-1']);
+    await screen.findByRole('button', { name: /Svar 1:/ });
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('submissionId=submission-1'),
+      expect.any(Object),
+    );
+  });
 });

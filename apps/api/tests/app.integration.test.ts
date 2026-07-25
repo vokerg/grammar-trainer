@@ -10,6 +10,7 @@ import { loadEnv } from '../src/config/env.js';
 
 const databasePath = resolve(process.cwd(), '../../prisma/integration-test.db');
 const databaseUrl = 'file:./integration-test.db';
+const prismaCliPath = resolve(process.cwd(), '../../node_modules/prisma/build/index.js');
 let prisma: PrismaClient;
 
 const env = loadEnv({
@@ -33,11 +34,15 @@ const env = loadEnv({
 
 beforeAll(() => {
   rmSync(databasePath, { force: true });
-  execFileSync('pnpm', ['exec', 'prisma', 'db', 'push', '--schema', '../../prisma/schema.prisma'], {
-    cwd: process.cwd(),
-    env: { ...process.env, DATABASE_URL: databaseUrl },
-    stdio: 'ignore',
-  });
+  execFileSync(
+    process.execPath,
+    [prismaCliPath, 'db', 'push', '--schema', '../../prisma/schema.prisma'],
+    {
+      cwd: process.cwd(),
+      env: { ...process.env, DATABASE_URL: databaseUrl },
+      stdio: 'ignore',
+    },
+  );
   prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
 });
 
@@ -45,12 +50,13 @@ beforeEach(async () => {
   await prisma.trainingAttempt.deleteMany();
   await prisma.mistake.deleteMany();
   await prisma.trainingItem.deleteMany();
+  await prisma.vocabularyEntry.deleteMany();
   await prisma.analysis.deleteMany();
   await prisma.submission.deleteMany();
 });
 
 afterAll(async () => {
-  await prisma.$disconnect();
+  await prisma?.$disconnect();
   rmSync(databasePath, { force: true });
 });
 
@@ -129,6 +135,58 @@ describe('grammar trainer API', () => {
     await app.close();
   });
 
+  it('returns every active exercise generally and scopes a result-page session to its submission', async () => {
+    const app = await createTestApp();
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/submissions',
+      payload: { text: 'Det var interesant.', language: 'da' },
+    });
+    const scopedItem = await prisma.trainingItem.findFirstOrThrow();
+    await prisma.trainingItem.update({
+      where: { id: scopedItem.id },
+      data: { nextPracticeAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
+    });
+    const vocabulary = await prisma.vocabularyEntry.create({
+      data: {
+        language: 'da',
+        category: 'SPELLING',
+        original: 'forkert',
+        correct: 'korrekt',
+        normalizedOriginal: 'forkert',
+        normalizedCorrect: 'korrekt',
+      },
+    });
+    await prisma.trainingItem.create({
+      data: {
+        language: 'da',
+        category: 'SPELLING',
+        exerciseType: 'CONTEXT',
+        originalForm: 'Det er forkert.',
+        correctForm: 'Det er korrekt.',
+        normalizedOriginal: 'forkert',
+        normalizedCorrect: 'korrekt',
+        distractorOne: 'Det er forkertt.',
+        distractorTwo: 'Det er forkært.',
+        vocabularyEntryId: vocabulary.id,
+      },
+    });
+
+    const general = await app.inject({ method: 'GET', url: '/api/training/session?language=da' });
+    const scoped = await app.inject({
+      method: 'GET',
+      url: `/api/training/session?language=da&submissionId=${created.json().submissionId}`,
+    });
+    expect(general.json().items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: scopedItem.id, exerciseType: 'context' }),
+        expect.objectContaining({ exerciseType: 'context' }),
+      ]),
+    );
+    expect(scoped.json().items).toMatchObject([{ id: scopedItem.id }]);
+    await app.close();
+  });
+
   it('records contextual answers and rejects unknown options', async () => {
     const app = await createTestApp();
     await app.inject({
@@ -156,6 +214,31 @@ describe('grammar trainer API', () => {
     });
     expect(invalid.statusCode).toBe(400);
     expect(await prisma.trainingAttempt.count()).toBe(2);
+    await app.close();
+  });
+
+  it('lists vocabulary items and removes a typo from the training pool', async () => {
+    const app = await createTestApp();
+    await app.inject({
+      method: 'POST',
+      url: '/api/submissions',
+      payload: { text: 'Det var interesant.', language: 'da' },
+    });
+    const vocabulary = await app.inject({ method: 'GET', url: '/api/vocabulary?language=da' });
+    expect(vocabulary.statusCode).toBe(200);
+    expect(vocabulary.json().items).toMatchObject([
+      { original: 'interesant', correct: 'interessant' },
+    ]);
+
+    const removed = await app.inject({
+      method: 'DELETE',
+      url: `/api/vocabulary/${vocabulary.json().items[0].id}`,
+    });
+    expect(removed.statusCode).toBe(204);
+    expect(await prisma.trainingItem.count()).toBe(1);
+    expect(
+      (await app.inject({ method: 'GET', url: '/api/training/session?language=da' })).json().items,
+    ).toEqual([]);
     await app.close();
   });
 

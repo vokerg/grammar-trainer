@@ -40,7 +40,36 @@ function buildLegacyContext(mistake: GrammarMistake): TrainingOptions | undefine
   };
 }
 
-function contextIsReasonable(options: TrainingOptions, language: string): boolean {
+function hasSharedCarrierContext(
+  options: TrainingOptions,
+  original: string,
+  correct: string,
+): boolean {
+  const originalIndex = options.originalOption.indexOf(original);
+  if (originalIndex < 0) return false;
+  const prefix = options.originalOption.slice(0, originalIndex);
+  const suffix = options.originalOption.slice(originalIndex + original.length);
+  const carrier = `${prefix} ${suffix}`.trim();
+  if (carrier.split(/\s+/).filter(Boolean).length === 0) return false;
+
+  const expectedValues = [options.correctOption, ...options.distractors];
+  return (
+    options.originalOption.indexOf(original, originalIndex + original.length) < 0 &&
+    options.correctOption === `${prefix}${correct}${suffix}` &&
+    expectedValues.every((value) => {
+      if (!value.startsWith(prefix) || !value.endsWith(suffix)) return false;
+      const changedPart = value.slice(prefix.length, value.length - suffix.length);
+      return changedPart.trim().length > 0;
+    })
+  );
+}
+
+function contextIsReasonable(
+  options: TrainingOptions,
+  language: string,
+  original: string,
+  correct: string,
+): boolean {
   const values = [options.originalOption, options.correctOption, ...options.distractors];
   if (values.some((value) => value.trim().length < 3 || value.length > 500)) return false;
   if (values.some((value) => value.trim().split(/\s+/).length < 2)) return false;
@@ -48,7 +77,9 @@ function contextIsReasonable(options: TrainingOptions, language: string): boolea
   if (new Set(normalized).size !== 4) return false;
   const lengths = values.map((value) => value.trim().length);
   const shortest = Math.max(1, Math.min(...lengths));
-  return Math.max(...lengths) / shortest <= 1.8;
+  return (
+    Math.max(...lengths) / shortest <= 1.8 && hasSharedCarrierContext(options, original, correct)
+  );
 }
 
 export function sanitizeMistake(mistake: GrammarMistake, language: string): SanitizedMistake {
@@ -66,7 +97,7 @@ export function sanitizeMistake(mistake: GrammarMistake, language: string): Sani
     trainingReason = 'missing-context';
   } else if (
     normalizedOriginal === normalizedCorrect ||
-    !contextIsReasonable(trainingOptions, language)
+    !contextIsReasonable(trainingOptions, language, mistake.original, mistake.correct)
   ) {
     trainingReason = 'invalid-options';
   } else {
