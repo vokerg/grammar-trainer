@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: grammar-trainer-api
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: pnpm install --frozen-lockfile && pnpm db:generate && pnpm db:migrate:deploy && pnpm build
+    startCommand: pnpm --filter @grammar/api start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: '22'
+      - key: NODE_ENV
+        value: production
+      - key: WEB_ORIGIN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: LLM_PROVIDER
+        value: openai-compatible
+      - key: LLM_BASE_URL
+        value: https://api.deepseek.com
+      - key: LLM_MODEL
+        value: deepseek-v4-flash
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_TIMEOUT_MS
+        value: '120000'
+      - key: LLM_MAX_RETRIES
+        value: '1'
+      - key: LLM_STORE_RAW_RESPONSE
+        value: 'false'
+      - key: LLM_DEBUG_LOGGING
+        value: 'false'
+      - key: LLM_REASONING_EFFORT
+        value: ''
+      - key: LLM_THINKING_MODE
+        value: disabled
+      - key: LOG_LEVEL
+        value: info
+

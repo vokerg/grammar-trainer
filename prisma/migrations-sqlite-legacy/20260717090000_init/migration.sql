@@ -75,3 +75,4 @@ CREATE INDEX "TrainingItem_language_active_idx" ON "TrainingItem"("language", "a
 CREATE INDEX "TrainingItem_nextPracticeAt_idx" ON "TrainingItem"("nextPracticeAt");
 CREATE INDEX "TrainingItem_normalizedCorrect_idx" ON "TrainingItem"("normalizedCorrect");
 CREATE INDEX "TrainingAttempt_trainingItemId_createdAt_idx" ON "TrainingAttempt"("trainingItemId", "createdAt");
+

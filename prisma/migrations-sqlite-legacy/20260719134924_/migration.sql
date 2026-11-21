@@ -33,3 +33,4 @@ CREATE INDEX "TrainingItem_vocabularyEntryId_idx" ON "TrainingItem"("vocabularyE
 CREATE UNIQUE INDEX "TrainingItem_language_normalizedOriginal_normalizedCorrect_key" ON "TrainingItem"("language", "normalizedOriginal", "normalizedCorrect");
 PRAGMA foreign_keys=ON;
 PRAGMA defer_foreign_keys=OFF;
+

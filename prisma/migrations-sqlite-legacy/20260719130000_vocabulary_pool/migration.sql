@@ -42,3 +42,4 @@ SET "vocabularyEntryId" = (
     AND "VocabularyEntry"."normalizedCorrect" = "TrainingItem"."normalizedCorrect"
 );
 CREATE INDEX "TrainingItem_vocabularyEntryId_idx" ON "TrainingItem"("vocabularyEntryId");
+
