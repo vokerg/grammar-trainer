@@ -9,7 +9,7 @@ Grammar Trainer is a local-first literacy app. Learners submit text, receive sup
 - `packages/shared`: shared Zod contracts, enums, types, and normalization.
 - `packages/llm`: provider interfaces, prompts, parsing, and provider adapters.
 - `packages/config`: safe provider and environment configuration helpers.
-- `prisma`: SQLite schema and migrations.
+- `prisma`: PostgreSQL schema and migrations.
 
 Routes validate HTTP input and delegate to services. Services own use cases and depend on repository interfaces. Keep Prisma in repository implementations and provider behavior in `packages/llm`; the LLM package must not depend on Prisma.
 
@@ -40,3 +40,4 @@ pnpm -r test
 ```
 
 Use the mock provider for deterministic development and CI. Require a live model only for provider-integration work.
+
