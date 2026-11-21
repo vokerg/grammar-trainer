@@ -1,5 +1,4 @@
 import { execFileSync } from 'node:child_process';
-import { rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { LanguageModelProvider, ProviderAnalysisResult } from '@grammar/llm';
 import { LlmError, MockLanguageModelProvider } from '@grammar/llm';
@@ -8,8 +7,15 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { loadEnv } from '../src/config/env.js';
 
-const databasePath = resolve(process.cwd(), '../../prisma/integration-test.db');
-const databaseUrl = 'file:./integration-test.db';
+const databaseUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
+if (
+  !databaseUrl ||
+  (process.env.TEST_DATABASE_URL === undefined && !/localhost|127\.0\.0\.1/.test(databaseUrl))
+) {
+  throw new Error(
+    'Set TEST_DATABASE_URL to a disposable PostgreSQL database before running API integration tests.',
+  );
+}
 const prismaCliPath = resolve(process.cwd(), '../../node_modules/prisma/build/index.js');
 let prisma: PrismaClient;
 
@@ -33,7 +39,6 @@ const env = loadEnv({
 });
 
 beforeAll(() => {
-  rmSync(databasePath, { force: true });
   execFileSync(
     process.execPath,
     [prismaCliPath, 'db', 'push', '--schema', '../../prisma/schema.prisma'],
@@ -57,7 +62,6 @@ beforeEach(async () => {
 
 afterAll(async () => {
   await prisma?.$disconnect();
-  rmSync(databasePath, { force: true });
 });
 
 async function createTestApp(
@@ -167,7 +171,7 @@ describe('grammar trainer API', () => {
         normalizedOriginal: 'forkert',
         normalizedCorrect: 'korrekt',
         distractorOne: 'Det er forkertt.',
-        distractorTwo: 'Det er forkært.',
+        distractorTwo: 'Det er forkГ¦rt.',
         vocabularyEntryId: vocabulary.id,
       },
     });
@@ -271,3 +275,4 @@ describe('grammar trainer API', () => {
     await app.close();
   });
 });
+
