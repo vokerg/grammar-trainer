@@ -3,9 +3,10 @@ import { z } from 'zod';
 
 const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  API_PORT: z.coerce.number().int().positive().default(3001),
+  PORT: z.coerce.number().int().positive().optional(),
+  API_PORT: z.coerce.number().int().positive().optional(),
   WEB_ORIGIN: z.string().url().default('http://localhost:5173'),
-  DATABASE_URL: z.string().min(1).default('file:./dev.db'),
+  DATABASE_URL: z.string().min(1),
   LLM_PROVIDER: z.enum(['mock', 'openai-compatible']).default('mock'),
   LLM_BASE_URL: z.string().url().default('http://localhost:11434/v1'),
   LLM_MODEL: z.string().min(1).default('qwen2.5'),
@@ -36,8 +37,10 @@ export type AppEnv = z.infer<typeof EnvSchema> & { llm: LlmConfig };
 
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
   const parsed = EnvSchema.parse(source);
+  const apiPort = parsed.API_PORT ?? parsed.PORT ?? 3001;
   return {
     ...parsed,
+    API_PORT: apiPort,
     llm: LlmConfigSchema.parse({
       provider: parsed.LLM_PROVIDER,
       baseUrl: parsed.LLM_BASE_URL,
@@ -53,3 +56,4 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): AppEnv {
     }),
   };
 }
+
