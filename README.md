@@ -6,7 +6,7 @@ A local-first literacy writing and training application. A learner writes a shor
 
 - React + Vite web app with writing, result, training, and history routes.
 - Fastify REST API with Zod-validated contracts.
-- Prisma repository layer backed by a local SQLite file.
+- Prisma repository layer backed by PostgreSQL (Neon in hosted environments).
 - Provider-independent LLM package with deterministic mock and OpenAI-compatible adapters.
 - Strict JSON parsing, one repair attempt, and semantic validation before mistakes can become training items.
 - Server-side option shuffling and answer validation without leaking the correct answer.
@@ -22,7 +22,7 @@ apps/api        Fastify API and application services
 packages/shared Shared Zod API/domain contracts and normalization
 packages/llm    LLM interfaces, prompts, parsing, mock and HTTP adapters
 packages/config Shared provider configuration helpers
-prisma          SQLite schema and migrations
+prisma          PostgreSQL schema and migrations
 ```
 
 The API route handlers depend on application services. Services use repository interfaces through a Prisma-backed repository context, and the LLM layer has no database dependency. This keeps PostgreSQL and additional model providers practical future changes.
@@ -138,11 +138,19 @@ Secrets remain server-side and are never included in `/api/config`. The UI label
 
 ## Database
 
-The default database is a SQLite file configured by:
+The hosted deployment uses a Neon PostgreSQL connection string:
 
 ```env
-DATABASE_URL=file:./dev.db
+DATABASE_URL=postgresql://user:password@host/database
 ```
+
+Use a separate disposable PostgreSQL database for integration tests via
+`TEST_DATABASE_URL`. The API accepts Render's `PORT` automatically when
+`API_PORT` is not set.
+
+The current migration history is PostgreSQL-based. The previous SQLite
+migrations are retained under `prisma/migrations-sqlite-legacy` for reference
+and are not applied by Prisma.
 
 Useful commands:
 
@@ -165,7 +173,7 @@ pnpm -r typecheck
 pnpm -r test
 ```
 
-The API integration suite creates a disposable SQLite database, resets it between tests, and covers successful analysis, failure preservation, retry, deduplication, answer secrecy, answer recording, and invalid options.
+The API integration suite uses a disposable PostgreSQL database, resets it between tests, and covers successful analysis, failure preservation, retry, deduplication, answer secrecy, answer recording, and invalid options.
 
 ## API overview
 
@@ -186,3 +194,4 @@ DELETE /api/vocabulary/:vocabularyEntryId
 ## Privacy notes
 
 Only the submitted text, requested language, and analysis instructions are sent to the configured model. The API does not log complete learner text, raw model responses, authorization headers, or API keys by default. Raw provider responses are stored only when `LLM_STORE_RAW_RESPONSE=true`; enabling it is useful for local debugging but increases the amount of sensitive text stored in the database.
+
