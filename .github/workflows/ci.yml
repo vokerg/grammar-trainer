@@ -14,8 +14,23 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: grammar_trainer
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d grammar_trainer"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     env:
-      DATABASE_URL: file:./ci.db
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/grammar_trainer
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/grammar_trainer
       NODE_ENV: test
       LLM_PROVIDER: mock
       MOCK_LLM_MODE: success
@@ -115,3 +130,4 @@ jobs:
             apps/web/dist
             packages/*/dist
           if-no-files-found: error
+
